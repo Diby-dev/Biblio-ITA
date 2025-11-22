@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des Livres</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background-color: #00003d;
+            background-image: url('./assets/ba2.jpg');  
+        }
+        h1 { color: #ffffff; text-align: center; }
+        #message { margin-bottom: 20px; padding: 10px; border-radius: 4px; text-align: center; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        /* STYLES POUR LA RECHERCHE */
+        #search-form-container {
+            background-color: #fffde7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ffecb3;
+        }
+        #btn-retour {
+            font-size: 18px;
+            color:#ffffff ;
+            background-color: #6c757d;
+        }
+        #btn-retour:hover {
+            background-color: #5a6268;
+        }
+        #search-fields-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 10px;
+            align-items: end;
+        }
+        #search-fields-grid label { font-weight: bold; margin-bottom: 5px; display: block; }
+        #search-fields-grid input, #search-fields-grid select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        #search-actions {
+            grid-column: span 4;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .action-button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        #btn-rechercher { background-color: #007bff; color: white; }
+        #btn-tous { background-color: #6c757d; color: white; }
+        /* FIN STYLES RECHERCHE */
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 20px; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            background-color: white;
+        }
+        th, td { 
+            border: 1px solid #ddd; 
+            padding: 12px; 
+            text-align: left; 
+        }
+        th { 
+            background-color: #ffc107; 
+            color: #333; 
+            font-weight: bold; 
+            text-transform: uppercase;
+        }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        
+        /* NOUVEAU: Styles pour l'édition */
+        tr:hover { background-color: #e0e0e0; cursor: pointer; }
+        .action-cell { 
+            width: 1%; 
+            white-space: nowrap;
+        }
+        .edit-input, .edit-select {
+            width: 90%;
+            padding: 4px;
+            border: 1px solid #ffc107; /* Couleur du thème */
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+        .save-button, .cancel-button, .edit-btn {
+            padding: 5px 10px;
+            margin: 2px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .edit-btn { background-color: #ffc107; color: #333; }
+        .save-button { background-color: #28a745; color: white; }
+        .cancel-button { background-color: #dc3545; color: white; }
+
+        .statut-disponible { color: green; font-weight: bold; }
+        .statut-emprunte { color: red; font-weight: bold; } 
+    </style>
+</head>
+<body>
+    <button type="button" id="btn-retour" class="action-button">⬅️ Retour au menu</button>
+    <h1>Liste des Livres</h1>
+    
+    <div id="search-form-container">
+        <form id="search-form">
+            <div id="search-fields-grid">
+                
+                <div>
+                    <label for="search-titre">Titre :</label>
+                    <input type="text" id="search-titre" name="titre_livre">
+                </div>
+                
+                <div>
+                    <label for="search-auteur">Auteur :</label>
+                    <input type="text" id="search-auteur" name="nom_auteur_complet">
+                </div>
+                
+                <div>
+                    <label for="search-fournisseur">Fournisseur :</label>
+                    <input type="text" id="search-fournisseur" name="nom_fournisseur">
+                </div>
+                
+                <div>
+                    <label for="search-statut">Statut :</label>
+                    <select id="search-statut" name="statut_livre">
+                        <option value="">Tous</option>
+                        <option value="Disponible">Disponible</option>
+                        <option value="Emprunté">Emprunté</option>
+                    </select>
+                </div>
+
+                <div id="search-actions">
+                    <button type="submit" id="btn-rechercher" class="action-button">RECHERCHER</button>
+                    <button type="button" id="btn-tous" class="action-button">TOUS LES LIVRES</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div id="message"></div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Titre</th>
+                <th>Auteur</th>
+                <th>Fournisseur</th>
+                <th>Statut</th>
+        </thead>
+        <tbody id="livres-table-body">
+             <tr><td colspan="6" style="text-align: center;">Chargement...</td></tr>
+        </tbody>
+    </table>
+
+    <script src="voir_livre-renderervis.js"></script>
+</body>
+</html>

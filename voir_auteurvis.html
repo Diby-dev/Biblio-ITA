@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des Auteurs</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background-color: #00003d;
+            background-image: url('./assets/ba2.jpg');  
+        }
+        h1 { color: #ffffff; text-align: center; }
+        #message { margin-bottom: 20px; padding: 10px; border-radius: 4px; text-align: center; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        
+        /* STYLES POUR LA RECHERCHE */
+        #search-form-container {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #bbdefb;
+        }
+        #btn-retour {
+            font-size: 18px;
+            color:#ffffff ;
+            background-color: #6c757d;
+        }
+        #btn-retour:hover {
+            background-color: #5a6268;
+        }
+        #search-fields-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 10px;
+            align-items: end;
+        }
+        #search-fields-grid label { font-weight: bold; margin-bottom: 5px; display: block; }
+        #search-fields-grid input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        #search-actions {
+            grid-column: span 4;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .action-button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        #btn-rechercher { background-color: #007bff; color: white; }
+        #btn-tous { background-color: #6c757d; color: white; }
+
+        /* Styles de la table */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.1); background-color: white; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #007bff; color: white; font-weight: bold; text-transform: uppercase; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        
+        /* NOUVEAU: Styles pour l'édition et l'interactivité */
+        tr:hover { background-color: #e0e0e0; cursor: pointer; }
+        .action-cell { 
+            width: 1%; 
+            white-space: nowrap;
+        }
+        .edit-input {
+            width: 90%;
+            padding: 4px;
+            border: 1px solid #007bff;
+            border-radius: 3px;
+        }
+        .save-button, .cancel-button, .edit-btn {
+            padding: 5px 10px;
+            margin: 2px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .edit-btn { background-color: #007bff; color: white; }
+        .save-button { background-color: #28a745; color: white; }
+        .cancel-button { background-color: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+    <button type="button" id="btn-retour" class="action-button">⬅️ Retour au menu</button>
+    <h1>Liste des Auteurs</h1>
+    
+    <div id="search-form-container">
+        <form id="search-form">
+            <div id="search-fields-grid">
+                
+                <div>
+                    <label for="search-nom">Nom :</label>
+                    <input type="text" id="search-nom" name="nom_auteur">
+                </div>
+                
+                <div>
+                    <label for="search-prenom">Prénom :</label>
+                    <input type="text" id="search-prenom" name="prenom_auteur">
+                </div>
+                
+                <div>
+                    <label for="search-nationalite">Nationalité :</label>
+                    <input type="text" id="search-nationalite" name="nationalite_auteur">
+                </div>
+                
+                <div id="search-actions">
+                    <button type="submit" id="btn-rechercher" class="action-button">RECHERCHER</button>
+                    <button type="button" id="btn-tous" class="action-button">TOUS LES AUTEURS</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div id="message"></div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Nationalité</th>
+                <th>Date de Naissance</th>
+                
+        </thead>
+        <tbody id="auteurs-table-body">
+            <tr><td colspan="6" style="text-align: center;">Chargement...</td></tr>
+        </tbody>
+    </table>
+
+    <script src="voir_auteur-renderervis.js"></script>
+</body>
+</html>

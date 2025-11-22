@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Principal</title>
+    <!-- Importation de Font Awesome pour les icônes -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        /* Variables */
+        :root {
+            --sidebar-width: 250px;
+            --dark-blue: #182c40; /* Couleur dominante du menu */
+        }
+
+        /* Réinitialisation de base */
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden; /* Empêche le scroll principal */
+        }
+
+        /* --- 1. Conteneur du Diaporama (Arrière-plan) --- */
+        .slideshow-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-color: var(--dark-blue);
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 3.2s ease-in-out; /* Animation de fondu */
+            filter: brightness(0.9) blur(1px); /* Assombrit le fond pour la lisibilité */
+            z-index: 1;
+        }
+        .logo-accueil{
+            width: 220px; /* C'est cette valeur que vous devez ajuster. */
+            height: 180px;
+            top: 70px;
+            left: 370px;
+            position: relative;
+
+        }
+
+        .slide.active {
+            opacity: 1;
+            z-index: 2;
+        }
+        
+        /* Placeholders d'images pour le diaporama */
+        .slide:nth-child(1) { 
+            background-image: url('./assets/imgvi3.jpg'); 
+        }
+        .slide:nth-child(2) { 
+            background-image: url('./assets/imgvi2.jpg'); 
+        }
+        .slide:nth-child(3) { 
+            background-image: url('./assets/imgvi.jpg'); 
+        }
+
+        /* --- 2. Barre Latérale (Sidebar) --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            min-width: var(--sidebar-width);
+            background-color: rgb(110, 40, 13);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            z-index: 10;
+        }
+        
+        /* Le titre H1 est déplacé dans le contenu principal */
+        h1 {
+            display: none; /* Cache le h1 original */
+        }
+
+        /* Conteneur pour les boutons dans la sidebar */
+        .menu-container {
+            width: 100%; /* Prend toute la largeur de la sidebar */
+            display: flex;
+            flex-direction: column;
+            gap: 0; /* Pas d'espace entre les boutons */
+        }
+
+        /* Style des groupes de boutons */
+        .menu-group {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        .menu-group-header {
+            font-size: 0.8rem;
+            color: #ffffffcc;
+            padding: 8px 20px 5px 20px;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 20px;
+            text-align: center;
+        }
+
+        /* Style des boutons */
+        .menu-buttonvi {
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            color: white;
+            text-align: left;
+            transition: background-color 0.2s, padding-left 0.2s;
+            border-radius: 0; /* Pas de coins arrondis pour les boutons latéraux */
+            display: flex;
+            align-items: center;
+        }
+        
+        .menu-buttonvi i {
+            margin-right: 10px;
+            width: 50px; /* Assure l'alignement vertical du texte */
+            text-align: center;
+        }
+
+        .menu-buttonvi:hover {
+            background-color: #34495e; /* Un bleu plus clair au survol */
+            padding-left: 25px;
+        }
+
+        /* --- 3. Contenu Principal (Zone d'accueil) --- */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.9);
+            z-index: 5;
+            padding: 20px;
+        }
+       
+        .iconebou2{
+            position: absolute;
+            left: 35px;
+            top: 141px;
+            width: 36px;
+            height: 36px;
+        }
+        .iconebou3{
+            position: absolute;
+            left: 35px;
+            top: 183px;
+            width: 36px;
+            height: 36px;
+        }
+      
+        
+        .welcome-text {
+            font-size: 4.5rem;
+            font-weight: bold;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            animation: fadeIn 3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Conteneur du Diaporama -->
+    <div class="slideshow-container">
+        <div class="slide active"></div>
+        <div class="slide"></div>
+        <div class="slide"></div>
+    </div>
+
+    <!-- Barre Latérale (Menu) -->
+     
+    <div class="sidebar">
+        <!-- Titre du Menu dans la Sidebar (en haut, si vous le souhaitez) -->
+        <div class="menu-group-header">VISITE DE LA BIBLIOTHÈQUE</div> 
+   
+        <!-- Groupe de boutons "que voulez-vous enregistrer" -->
+        <div class="menu-group">
+            <div class="menu-group-header">que voulez vous vérifier ?</div>
+            <img src="./assets/livre.png" alt="Logo de la Bibliothèque" class="iconebou2">
+            <img src="./assets/auteur.png" alt="Logo de la Bibliothèque" class="iconebou3">
+            <div class="menu-container">
+                <!-- FIX: Ajout de l'extension .html dans data-target -->
+                
+                
+                <button id="btn-livre" class="menu-buttonvi" data-target="voir_livrevis.html">
+                    <i class="fas fa-book"></i> Livre
+                </button>
+                <button id="btn-auteur" class="menu-buttonvi" data-target="voir_auteurvis.html">
+                    <i class="fas fa-pen-nib"></i> Auteur
+                </button>
+                    </div>
+        </div>
+
+        <!-- Groupe de boutons "quelles autres opération voulez-vous faire ?" -->
+        <div class="menu-group">
+            <div class="menu-group-header"></div>
+            <div class="menu-container">
+                <!-- FIX: Ajout de l'extension .html dans data-target -->
+                <button id="btn-rapport-pdf" class="menu-buttonvi" data-target="rapport_pdf.html">
+                    <i class="fas fa-file-pdf"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+   
+     <img src="./assets/ITA.png" alt="Logo de la Bibliothèque" class="logo-accueil">
+    <div class="main-content">
+    <div class="welcome-text">BIENVENUE</div>
+</div>
+
+   
+    <script src="renderervis.js"></script>
+</body>
+</html>

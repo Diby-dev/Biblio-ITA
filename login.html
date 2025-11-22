@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Connexion Secrète</title>
+    <style>
+        /* Styles CSS pour la fenêtre de connexion */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #aeaeca;
+            background-image: url('./assets/ba.jpg'); 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .login-box {
+            background: #e7ffe9;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            width: 350px;
+            text-align: center;
+            border-top: 5px solid #3498db;
+        }
+
+        .login-box h2 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+            font-weight: 600;
+        }
+             .logo-accueil{
+            width: 170px; /* C'est cette valeur que vous devez ajuster. */
+            height: 140px;
+            top: -3px;
+            left: 596px;
+            position: absolute;
+
+        }
+
+        .login-box label {
+            display: block;
+            text-align: left;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #34495e;
+            font-size: 0.95em;
+        }
+
+        .login-box input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #bdc3c7;
+            border-radius: 6px;
+            box-sizing: border-box; 
+            font-size: 1em;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .login-box input[type="password"]:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+            outline: none;
+        }
+
+        .login-box .butad {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+
+        .login-box .butvi {
+            position: relative;
+            top: 7px;
+            background-color: #4d34db;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+
+        .login-box button:hover {
+            background-color: #15425f;
+        }
+
+        #message {
+            margin-top: 15px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <img src="./assets/ITA.png" alt="Logo de la Bibliothèque" class="logo-accueil">
+    <div class="login-box">
+        <h2>CONNEXION</h2>
+        <form id="login-form">
+    <label for="password">Mot de Passe Secret :</label>
+    <input type="password" id="password" placeholder="Entrez le mot de passe si vous êtes un administrateur" required>
+    
+    <button type="submit" class="butad">Déverrouiller et Accéder à l'espace administrateur</button>
+    
+    <button type="button" id="btn-acces-visiteur" class="butvi">Accès visiteur</button>
+    
+    <div id="message"></div>
+</form>
+    </div>
+    <script src="login-renderer.js"></script>
+</body>
+</html>

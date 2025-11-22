@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des Emprunts</title>
+    <style>
+        /* CSS corrigé et nettoyé */
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background-color: #aeaeca;
+            background-image: url('./assets/bo.jpg');  
+        }
+        h1 { color: #ffffff; text-align: center; }
+        #message { margin-bottom: 20px; padding: 10px; border-radius: 4px; text-align: center; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+
+        /* STYLES POUR LA RECHERCHE */
+        #search-form-container {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #bbdefb;
+        }
+        #search-fields-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            align-items: end;
+        }
+         #btn-retour {
+            font-size: 18px;
+            color:#ffffff ;
+            background-color: #6c757d;
+        }
+        #btn-retour:hover {
+            background-color: #5a6268;
+        }
+        #search-fields-grid label { 
+            font-weight: bold; 
+            margin-bottom: 5px; 
+            display: block; 
+        }
+        #search-fields-grid input, 
+        #search-fields-grid select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .date-filter-group-single {
+            grid-column: span 2;
+        }
+
+        #search-actions {
+            grid-column: span 4;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .action-button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        #btn-rechercher { background-color: #007bff; color: white; }
+        #btn-tous { background-color: #6c757d; color: white; }
+        /* FIN STYLES RECHERCHE */
+
+        /* STYLES DU TABLEAU */
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 20px; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            background-color: white;
+        }
+        th, td { 
+            border: 1px solid #ddd; 
+            padding: 12px; 
+            text-align: left; 
+        }
+        th { 
+            background-color: #17a2b8;
+            color: white; 
+            font-weight: bold; 
+            text-transform: uppercase;
+        }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #e6f7ff; cursor: pointer; }
+        
+        /* STYLES D'ÉDITION EN LIGNE */
+        .action-cell { 
+            width: 1%; 
+            white-space: nowrap;
+        }
+        .edit-input, .edit-select {
+            width: 90%;
+            padding: 4px;
+            border: 1px solid #17a2b8;
+            border-radius: 3px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        .save-button, .cancel-button, .edit-btn {
+            padding: 5px 10px;
+            margin: 2px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .edit-btn { background-color: #17a2b8; color: white; }
+        .save-button { background-color: #28a745; color: white; }
+        .cancel-button { background-color: #dc3545; color: white; }
+
+        /* Classes de statut d'emprunt */
+        .statut-en.cours { color: #007bff; font-weight: bold; }
+        .statut-retourne { color: green; font-weight: bold; } 
+        .statut-en.retard { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <button type="button" id="btn-retour" class="action-button">⬅️ Retour à l'enregistrement</button>
+    <h1>Liste des Emprunts Enregistrés</h1>
+    
+    <div id="search-form-container">
+        <form id="search-form">
+            <div id="search-fields-grid">
+                
+                <div>
+                    <label for="search-livre">Titre du Livre :</label>
+                    <input type="text" id="search-livre" name="titre_livre">
+                </div>
+                
+                <div>
+                    <label for="search-utilisateur">Utilisateur :</label>
+                    <input type="text" id="search-utilisateur" name="nom_utilisateur_complet">
+                </div>
+                
+                <div>
+                    <label for="search-statut">Statut :</label>
+                    <select id="search-statut" name="statut_emprunt">
+                        <option value="">Tous</option>
+                        <option value="En cours">En cours</option>
+                        <option value="Retourné">Retourné</option>
+                        <option value="En retard">En retard</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="search-date-emprunt">Date d'Emprunt :</label>
+                    <input type="date" id="search-date-emprunt" name="date_emprunt" title="Date d'emprunt (Exact)">
+                </div>
+                
+                <div class="date-filter-group-single">
+                    <label for="search-date-limite">Date Limite de Retour :</label>
+                    <input type="date" id="search-date-limite" name="date_limite" title="Date limite de retour (Exact)">
+                </div>
+                
+                <div class="date-filter-group-single">
+                    <label for="search-date-retour">Date Retour Réelle :</label>
+                    <input type="date" id="search-date-retour" name="date_retour" title="Date de retour réelle (Exact)">
+                </div>
+                
+                <div id="search-actions">
+                    <button type="submit" id="btn-rechercher" class="action-button">RECHERCHER</button>
+                    <button type="button" id="btn-tous" class="action-button">TOUS LES EMPRUNTS</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div id="message"></div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID Emprunt</th>
+                <th>Livre</th>
+                <th>Utilisateur</th>
+                <th>Date Emprunt</th>
+                <th>Statut</th>
+                <th>Limite Retour</th>
+                <th>Date Retour Réelle</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="emprunts-table-body">
+            <tr><td colspan="8" style="text-align: center;">Chargement...</td></tr>
+        </tbody>
+    </table>
+
+    <script src="voir_emprunt-renderer.js"></script>
+</body>
+</html>

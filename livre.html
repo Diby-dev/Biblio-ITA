@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Enregistrement Livre</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background-color: #aeaeca;
+            background-image: url('./assets/bo.jpg');  
+        }
+        h1 { color: #ffffff; margin-left: 340px; }
+        form { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        #btn-retour {
+            font-size: 18px;
+            color:#ffffff ;
+            background-color: #6c757d;
+        }
+        #btn-retour:hover {
+            background-color: #5a6268;
+        }
+
+
+        .action-button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .primary-button {
+            background-color: #4CAF50; /* Vert pour Enregistrer */
+            color: white;
+        }
+        .primary-button:hover { background-color: #45a049; }
+        #btn-voir-liste {
+            background-color: #007bff; /* Bleu pour Voir la liste */
+            color: white;
+        }
+        #btn-voir-liste:hover { background-color: #0056b3; }
+        #message { margin-top: 15px; padding: 10px; border-radius: 4px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <button type="button" id="btn-retour" class="action-button">⬅️ Retour au Menu</button>
+    <h1>Enregistrement d'un Nouveau Livre</h1>
+    <form id="livre-form">
+        
+        <label for="titre">Titre du Livre :</label>
+        <input type="text" id="titre" name="titre_livre" required>
+
+        <label for="statut">Statut :</label>
+        <select id="statut" name="statut_livre" required>
+            <option value="disponible">Disponible</option>
+            <option value="emprunté">Emprunté</option>
+        </select>
+
+        <label for="id_auteur">Auteur (Optionnel) :</label>
+        <select id="id_auteur" name="id_auteur">
+            <option value="">-- Chargement des auteurs... --</option>
+        </select>
+
+        <label for="id_fournisseur">Fournisseur (Optionnel) :</label>
+        <select id="id_fournisseur" name="id_fournisseur">
+            <option value="">-- Chargement des fournisseurs... --</option>
+        </select>
+
+        <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+            <button type="button" id="btn-voir-liste" class="action-button">Voir la liste</button>
+            <button type="submit" class="action-button primary-button">Enregistrer le Livre</button>
+        </div>
+        
+    </form>
+    
+    <div id="message"></div>
+
+    <script src="livre-renderer.js"></script>
+</body>
+</html>

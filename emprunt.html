@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Enregistrement Emprunt</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background-color: #aeaeca;
+            background-image: url('./assets/bo.jpg');  
+        }
+        h1 { color: #ffffff; margin-left: 340px; }
+        form { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input[type="number"], input[type="date"], select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            /* Correction potentielle de lisibilité */
+            color: #000000; 
+        }
+        .action-button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #btn-retour {
+            font-size: 18px;
+            color:#ffffff ;
+            background-color: #6c757d;
+        }
+        #btn-retour:hover {
+            background-color: #5a6268;
+        }
+        .primary-button {
+            background-color: #17a2b8; /* Bleu pour l'Emprunt */
+            color: white;
+        }
+        .primary-button:hover { background-color: #117a8b; }
+        #btn-voir-liste {
+            background-color: #007bff;
+            color: white;
+        }
+        #btn-voir-liste:hover { background-color: #0056b3; }
+        #message { margin-top: 15px; padding: 10px; border-radius: 4px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <button type="button" id="btn-retour" class="action-button">⬅️ Retour au Menu</button>
+    <h1>Enregistrement d'un Nouvel Emprunt</h1>
+    <form id="emprunt-form">
+        
+        <label for="id_utilisateur">Utilisateur :</label>
+        <select id="id_utilisateur" name="id_utilisateur" required>
+            <option value="">-- Chargement des utilisateurs --</option>
+            </select>
+
+        <label for="id_livre">Livre :</label>
+        <select id="id_livre" name="id_livre" required>
+            <option value="">-- Chargement des livres disponibles --</option>
+            </select>
+
+        <label for="date_emprunt">Date de l'Emprunt :</label>
+        <input type="date" id="date_emprunt" name="date_emprunt" required>
+
+        <label for="date_limite">Date Limite de Retour :</label>
+        <input type="date" id="date_limite" name="date_limite_retour_emprunt" required>
+        
+        <label for="statut_emprunt">Statut de l'Emprunt :</label>
+        <select id="statut_emprunt" name="statut_emprunt" required>
+            <option value="en cours">En cours</option>
+            <option value="retourné">Retourné</option>
+            <option value="en retard">En retard</option>
+        </select>
+        
+        <label for="date_retour">Date de Retour Réelle (Optionnel) :</label>
+        <input type="date" id="date_retour" name="date_retour_emprunt">
+        <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+            <button type="button" id="btn-voir-liste" class="action-button">Voir les Emprunts</button>
+            <button type="submit" class="action-button primary-button">Valider l'Emprunt</button>
+        </div>
+        
+    </form>
+    
+    <div id="message"></div>
+
+    <script src="emprunt-renderer.js"></script>
+</body>
+</html>
