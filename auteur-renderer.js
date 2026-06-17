@@ -1,17 +1,11 @@
-// auteur-renderer.js
-
 const { ipcRenderer } = require('electron');
 
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('auteur-form');
     const messageDiv = document.getElementById('message');
-    // 👈 SÉLECTION DU NOUVEAU BOUTON
     const viewButton = document.getElementById('btn-voir-liste'); 
     const backButton = document.getElementById('btn-retour');
 
-    // ----------------------------------------------------
-    // 1. GESTION DE L'ENREGISTREMENT (EXISTANT)
-    // ----------------------------------------------------
     form.addEventListener('submit', (event) => {
         event.preventDefault(); 
         
@@ -35,12 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ----------------------------------------------------
-    // 2. GESTION DU BOUTON 'VOIR LA LISTE' (NOUVEAU)
-    // ----------------------------------------------------
     if (viewButton) {
         viewButton.addEventListener('click', () => {
-            // Utilise le canal 'open-window' existant dans main.js
             ipcRenderer.send('open-window', 'voir_auteur.html'); 
         });
     } else {
@@ -49,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (backButton) {
         backButton.addEventListener('click', () => {
-            // Envoie la demande pour ouvrir utilisateur.html (qui remplacera la fenêtre actuelle)
             ipcRenderer.send('open-window', 'index.html');
         });
     } else {

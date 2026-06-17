@@ -5,8 +5,7 @@
     <title>Liste des Utilisateurs</title>
     <style>
         body { 
-            font-family:
-            Arial, sans-serif;
+            font-family: Arial, sans-serif;
             padding: 20px;
             background-color: #aeaeca;
             background-image: url('./assets/bo.jpg');  
@@ -16,18 +15,34 @@
              color: #ffffff;
              text-align: center;
              } 
-        #message { margin-bottom: 20px; padding: 10px; border-radius: 4px; }
-        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+
+        #message { 
+            margin-bottom: 20px; 
+            padding: 10px; 
+            border-radius: 4px; 
+        }
+
+
+        .error { 
+            background-color: #f8d7da; 
+            color: #721c24; 
+            border: 1px solid #f5c6cb; 
+        }
+
+
         #btn-retour {
             font-size: 18px;
             color:#ffffff ;
             background-color: #6c757d;
         }
+
+
         #btn-retour:hover {
             background-color: #5a6268;
         }
         
-        /* Styles pour la zone de recherche */
+        
         #search-form-container {
             background-color: #e6f7ff;
             padding: 15px;
@@ -35,13 +50,23 @@
             margin-bottom: 20px;
             border: 1px solid #cceeff;
         }
+
+
         #search-fields-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr); 
             gap: 10px;
             align-items: end;
         }
-        #search-fields-grid label { font-weight: bold; margin-bottom: 5px; display: block; }
+
+
+        #search-fields-grid label { 
+            font-weight: bold; 
+            margin-bottom: 5px; 
+            display: block; 
+        }
+
+
         #search-fields-grid input, #search-fields-grid select {
             width: 100%;
             padding: 8px;
@@ -49,6 +74,8 @@
             border-radius: 4px;
             box-sizing: border-box;
         }
+
+
         #search-actions {
             grid-column: span 4;
             display: flex;
@@ -56,6 +83,8 @@
             gap: 10px;
             margin-top: 15px;
         }
+
+
         .action-button {
             padding: 10px 15px;
             border: none;
@@ -65,10 +94,20 @@
             font-weight: bold;
             text-transform: uppercase;
         }
-        #btn-rechercher { background-color: #007bff; color: white; }
-        #btn-tous { background-color: #6c757d; color: white; }
 
-        /* Styles de la table */
+
+        #btn-rechercher { 
+            background-color: #007bff; 
+            color: white; 
+        }
+
+
+        #btn-tous { 
+            background-color: #6c757d; 
+            color: white; 
+        }
+
+        
         table {
             width: 100%;
             border-collapse: collapse;
@@ -76,35 +115,54 @@
             background: white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+
+
         th, td {
             border: 1px solid #ddd;
             padding: 10px;
             text-align: left;
         }
+
+
         th {
             background-color: #4CAF50;
             color: white;
             position: sticky;
             top: 0;
         }
-        tr:nth-child(even) { background-color: #f2f2f2; }
+
+
+        tr:nth-child(even) { 
+            background-color: #f2f2f2; 
+        }
         
-        /* NOUVEAU: Styles pour l'édition et l'interactivité */
-        tr:hover { background-color: #e0e0e0; cursor: pointer; }
+        
+        tr:hover { 
+            background-color: #e0e0e0; 
+            cursor: pointer; 
+        }
+
+
         .selected-row { 
-            background-color: #cceeff !important; /* Force la couleur de sélection */
+            background-color: #cceeff !important;
             border: 2px solid #007bff;
         }
+
+
         .action-cell { 
-            width: 1%; /* Rendre la colonne action mince */
+            width: 1%;
             white-space: nowrap;
         }
+
+
         .edit-input, .edit-select {
             width: 90%;
             padding: 4px;
             border: 1px solid #007bff;
             border-radius: 3px;
         }
+
+
         .save-button, .cancel-button, .edit-btn {
             padding: 5px 10px;
             margin: 2px;
@@ -113,13 +171,29 @@
             cursor: pointer;
             font-weight: bold;
         }
-        .edit-btn { background-color: #007bff; color: white; }
-        .save-button { background-color: #28a745; color: white; }
-        .cancel-button { background-color: #dc3545; color: white; }
+
+
+        .edit-btn { 
+            background-color: #007bff; 
+            color: white; 
+        }
+
+
+        .save-button { 
+            background-color: #28a745; 
+            color: white; 
+        }
+
+
+        .cancel-button { 
+            background-color: #dc3545; 
+            color: white; 
+        }
+
     </style>
 </head>
 <body>
-    <button type="button" id="btn-retour" class="action-button">⬅️ retour enregistrement</button>
+    <button type="button" id="btn-retour" class="action-button">retour enregistrement</button>
     <h1>Liste et Gestion des Utilisateurs</h1>
     
     <div id="search-form-container">

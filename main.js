@@ -1,22 +1,12 @@
-// main.js
-
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const mysql = require('mysql2/promise');
 
-// Nouvelles dépendances pour la génération de PDF
 const puppeteer = require('puppeteer');
 const fs = require('fs'); 
-// NOTE: Assurez-vous d'avoir bien exécuté 'npm install puppeteer' au préalable.
 
-// ------------------------------------
-// 0. CONSTANTE DE SÉCURITÉ 🔒
-// ------------------------------------
 const ADMIN_SECRET_PASSWORD = 'ITAyopADM';
 
-// ------------------------------------
-// 1. CONFIGURATION ET INITIALISATION DB / SUIVI GLOBAL
-// ------------------------------------
 const dbConfig = {
     host: 'localhost',
     user: 'root',
@@ -28,34 +18,23 @@ const dbConfig = {
 };
 
 let pool; 
-const openWindows = new Set(); // Conservation pour référence, mais moins critique maintenant
-// 📢 NOUVEAU SUIVI UNIQUE : Gère la fenêtre active (principale OU fille)
+const openWindows = new Set();
 let currentActiveWindow = null; 
 
 function initializeDatabasePool() {
     try {
         pool = mysql.createPool(dbConfig);
-        console.log('Pool de connexion MySQL créé avec succès.');
+        console.log('connexion à MySQL créé avec succès.');
     } catch (err) {
-        console.error('ERREUR: Impossible de créer le pool de connexion MySQL:', err);
+        console.error('ERREUR: Impossible de créer une connexion à MySQL:', err);
     }
 }
 
-// ------------------------------------
-// 2. FONCTIONS DE GESTION DES FENÊTRES (UNIFIÉES)
-// ------------------------------------
-
-/**
- * Crée une nouvelle fenêtre et ferme la fenêtre active précédente.
- * Utilisée pour index.html ET toutes les fenêtres filles.
- */
 function createAndReplaceWindow(targetFile) {
-    // 1. Fermer la fenêtre active précédente (qu'elle soit index.html ou une fenêtre fille)
     if (currentActiveWindow && !currentActiveWindow.isDestroyed()) {
         currentActiveWindow.close();
     }
 
-    // Définir les dimensions en fonction du fichier
     let windowOptions = {
         width: 1400,
         height: 900,
@@ -67,50 +46,22 @@ function createAndReplaceWindow(targetFile) {
         }
     };
 
-    // Ajuster la taille pour la fenêtre principale (index.html)
-    if (targetFile === 'login.html') {
-        windowOptions.width = 1400;
-        windowOptions.height = 900;
-        windowOptions.webPreferences.preload = path.join(__dirname, 'preload.js');
-    }
-
-    // 2. Créer la nouvelle fenêtre
     const newWindow = new BrowserWindow(windowOptions);
-    
-    // 3. Charger le fichier
     newWindow.loadFile(path.join(__dirname, targetFile));
-    
-    // 4. Mettre à jour la référence de la fenêtre active
     currentActiveWindow = newWindow;
-
     newWindow.on('closed', () => {
-        // Optionnel : Retirer de openWindows si vous l'utilisez
-        // openWindows.delete(newWindow); 
-
-        // S'assurer que la référence globale est effacée si c'est la fenêtre active qui se ferme
+   
         if (currentActiveWindow === newWindow) {
             currentActiveWindow = null;
         }
     });
 }
 
-// NOTE: Les anciennes fonctions createMainWindow() et createChildWindow() sont remplacées par createAndReplaceWindow().
-
-
-// ------------------------------------
-// 3. GESTION DU CYCLE DE VIE D'ELECTRON (MISE À JOUR)
-// ------------------------------------
-
-// 🚀 CET UNIQUE BLOC GÈRE LE DÉMARRAGE DE L'APPLICATION
 app.whenReady().then(() => {
-    initializeDatabasePool(); // 1. Initialise la pool de connexion
-    // 📢 Utiliser la nouvelle fonction pour la fenêtre initiale
+    initializeDatabasePool(); 
     createAndReplaceWindow('login.html');       
-
-    // 3. Gestion du 'activate' (pour macOS)
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
-            // 📢 Utiliser la nouvelle fonction ici aussi
             createAndReplaceWindow('login.html');
         }
     });
@@ -122,19 +73,11 @@ app.on('window-all-closed', () => {
     }
 });
 
-
-// ------------------------------------
-// 4. GESTION DES EVENEMENTS IPC (INCHANGÉE)
-// ------------------------------------
-
-// 4.1. Ouvrir une fenêtre fille
 ipcMain.on('open-window', (event, targetFile) => {
-    console.log(`Processus principal a reçu la demande d'ouverture de : ${targetFile}`);
-    // 📢 Appel à la fonction unifiée
+    console.log(`ouverture de la fenêtre : ${targetFile}`);
     createAndReplaceWindow(targetFile);
 });
 
-// 4.2. Gère l'insertion d'un nouvel utilisateur
 ipcMain.on('add-user', async (event, userData) => {
     console.log('Tentative d\'enregistrement d\'un utilisateur:', userData);
 
@@ -174,9 +117,6 @@ ipcMain.on('add-user', async (event, userData) => {
     }
 });
 
-// main.js - NOUVELLE FONCTION
-
-// 4.12. Mise à jour d'un utilisateur
 ipcMain.on('update-user', async (event, userData) => {
     console.log('Tentative de mise à jour de l\'utilisateur:', userData);
 
@@ -191,7 +131,6 @@ ipcMain.on('update-user', async (event, userData) => {
         statut_utilisateur 
     } = userData;
 
-    // Vérification minimale des données requises
     if (!id_utilisateur) {
         event.sender.send('update-user-response', { 
             success: false, 
@@ -218,7 +157,6 @@ ipcMain.on('update-user', async (event, userData) => {
         nom_utilisateur, 
         prenom_utilisateur, 
         type_utilisateur, 
-        // Les champs suivants sont passés à NULL si l'utilisateur les laisse vides
         classe_utilisateur, 
         filiere_utilisateur, 
         contact_utilisateur, 
@@ -232,8 +170,6 @@ ipcMain.on('update-user', async (event, userData) => {
         const [result] = await pool.execute(sql, values);
         
         if (result.affectedRows === 0) {
-            // Cela peut arriver si l'ID n'existe pas ou si aucune donnée n'a changé
-            // Dans ce cas, nous considérons que l'opération a réussi mais sans modification réelle
             event.sender.send('update-user-response', { 
                 success: true, 
                 id: id_utilisateur 
@@ -249,7 +185,6 @@ ipcMain.on('update-user', async (event, userData) => {
     } catch (error) {
         console.error("Erreur lors de la mise à jour de l'utilisateur:", error);
         
-        // Gérer les erreurs de la base de données (ex: contrainte de clé unique, données invalides)
         event.sender.send('update-user-response', { 
             success: false, 
             id: id_utilisateur,
@@ -258,23 +193,18 @@ ipcMain.on('update-user', async (event, userData) => {
     }
 });
 
-// 4.3. Récupération de la liste des utilisateurs (maintenant avec filtres)
 ipcMain.on('get-users', async (event, filters = {}) => {
     console.log('Tentative de récupération des utilisateurs avec filtres:', filters);
 
     let whereClauses = [];
     let values = [];
 
-    // Construction dynamique de la clause WHERE
-    // Les clés de l'objet 'filters' doivent correspondre aux noms de colonnes SQL.
     for (const key in filters) {
         if (filters[key]) {
-            // Pour 'type_utilisateur' et 'statut_utilisateur', on utilise l'égalité stricte
             if (key === 'type_utilisateur' || key === 'statut_utilisateur') {
                 whereClauses.push(`${key} = ?`);
                 values.push(filters[key]);
             } else {
-                // Pour les champs textuels (nom, prénom, classe, filière, contact), on utilise LIKE pour la recherche partielle
                 whereClauses.push(`${key} LIKE ?`);
                 values.push(`%${filters[key]}%`);
             }
@@ -294,7 +224,6 @@ ipcMain.on('get-users', async (event, filters = {}) => {
         FROM utilisateur 
     `;
 
-    // Ajout de la clause WHERE si des filtres sont présents
     if (whereClauses.length > 0) {
         sql += ' WHERE ' + whereClauses.join(' AND ');
     }
@@ -304,7 +233,6 @@ ipcMain.on('get-users', async (event, filters = {}) => {
     try {
         if (!pool) throw new Error("La connexion à la base de données n'est pas initialisée.");
 
-        // Utilisation de pool.execute avec les 'values' pour gérer les paramètres de manière sécurisée
         const [rows] = await pool.execute(sql, values);
         
         event.sender.send('get-users-response', { 
@@ -321,7 +249,7 @@ ipcMain.on('get-users', async (event, filters = {}) => {
         });
     }
 });
-// 4.4. Gère l'insertion d'un nouvel auteur (NOUVEL AJOUT)
+
 ipcMain.on('add-auteur', async (event, auteurData) => {
     console.log('Tentative d\'enregistrement d\'un auteur:', auteurData);
 
@@ -331,12 +259,11 @@ ipcMain.on('add-auteur', async (event, auteurData) => {
         VALUES (?, ?, ?, ?);
     `;
     
-    // Les valeurs à insérer (date_naissance_auteur peut être NULL)
     const values = [
         auteurData.nom_auteur,
         auteurData.prenom_auteur,
         auteurData.nationalite_auteur || null,
-        auteurData.date_naissance_auteur || null // Accepte NULL si le champ est vide
+        auteurData.date_naissance_auteur || null 
     ];
 
     try {
@@ -359,9 +286,7 @@ ipcMain.on('add-auteur', async (event, auteurData) => {
     }
 });
 
-// main.js - NOUVELLE FONCTION
 
-// 4.X. Mise à jour d'un auteur
 ipcMain.on('update-auteur', async (event, auteurData) => {
     console.log('Tentative de mise à jour de l\'auteur:', auteurData);
 
@@ -370,7 +295,7 @@ ipcMain.on('update-auteur', async (event, auteurData) => {
         nom_auteur, 
         prenom_auteur, 
         nationalite_auteur, 
-        date_naissance_auteur // Format YYYY-MM-DD
+        date_naissance_auteur
     } = auteurData;
 
     if (!id_auteur) {
@@ -421,20 +346,17 @@ ipcMain.on('update-auteur', async (event, auteurData) => {
     }
 });
 
-// main.js (Ajouter dans la Section 4. GESTION DES EVENEMENTS IPC)
 
-// 4.8. Récupération de la liste des auteurs (avec support de la recherche filtrée)
 ipcMain.on('get-auteurs', async (event, filters = {}) => {
     console.log('Tentative de récupération de la liste des auteurs avec filtres:', filters);
 
     let whereClauses = [];
     let values = [];
 
-    // Construction dynamique de la clause WHERE
-    // Les clés de 'filters' (ex: nom_auteur) doivent correspondre aux colonnes SQL.
+    
     for (const key in filters) {
         if (filters[key]) {
-            // Pour tous les champs de l'auteur, on utilise LIKE pour la recherche partielle
+            
             whereClauses.push(`${key} LIKE ?`);
             values.push(`%${filters[key]}%`);
         }
@@ -459,7 +381,6 @@ ipcMain.on('get-auteurs', async (event, filters = {}) => {
     try {
         if (!pool) throw new Error("La connexion à la base de données n'est pas initialisée.");
 
-        // Exécute la requête SELECT avec les valeurs filtrées
         const [rows] = await pool.execute(sql, values); 
         
         event.sender.send('get-auteurs-response', { 
@@ -477,7 +398,7 @@ ipcMain.on('get-auteurs', async (event, filters = {}) => {
     }
 });
 
-// 4.6. Gère l'insertion d'un nouveau fournisseur (NOUVEL AJOUT - Enregistrement)
+
 ipcMain.on('add-fournisseur', async (event, fournisseurData) => {
     console.log('Tentative d\'enregistrement d\'un fournisseur:', fournisseurData);
 
@@ -519,9 +440,7 @@ ipcMain.on('add-fournisseur', async (event, fournisseurData) => {
     }
 });
 
-// main.js - NOUVELLE FONCTION
 
-// 4.Y. Mise à jour d'un fournisseur
 ipcMain.on('update-fournisseur', async (event, fournisseurData) => {
     console.log('Tentative de mise à jour du fournisseur:', fournisseurData);
 
@@ -582,15 +501,14 @@ ipcMain.on('update-fournisseur', async (event, fournisseurData) => {
 });
 
 
-// 4.7. Récupération de la liste des fournisseurs (avec support de la recherche filtrée)
+
 ipcMain.on('get-fournisseurs', async (event, filters = {}) => {
     console.log('Tentative de récupération de la liste des fournisseurs avec filtres:', filters);
 
     let whereClauses = [];
     let values = [];
 
-    // Construction dynamique de la clause WHERE
-    // Tous les champs sont traités avec LIKE pour une recherche partielle (nom_fournisseur, contact_fournisseur, email_fournisseur, adresse_fournisseur)
+    
     for (const key in filters) {
         if (filters[key]) {
             whereClauses.push(`${key} LIKE ?`);
@@ -617,7 +535,6 @@ ipcMain.on('get-fournisseurs', async (event, filters = {}) => {
     try {
         if (!pool) throw new Error("La connexion à la base de données n'est pas initialisée.");
 
-        // Exécute la requête SELECT avec les valeurs filtrées
         const [rows] = await pool.execute(sql, values); 
         
         event.sender.send('get-fournisseurs-response', { 
@@ -635,12 +552,11 @@ ipcMain.on('get-fournisseurs', async (event, filters = {}) => {
     }
 });
 
-// main.js (Ajouter dans la Section 4. GESTION DES EVENEMENTS IPC)
+
 ipcMain.on('get-livre-dependencies-for-add', async (event) => {
     try {
         if (!pool) throw new Error("La connexion à la base de données n'est pas initialisée.");
 
-        // Récupérer les Auteurs
         const [auteursResult] = await pool.execute(`
             SELECT 
                 id_auteur, 
@@ -649,7 +565,6 @@ ipcMain.on('get-livre-dependencies-for-add', async (event) => {
             ORDER BY nom_auteur_complet ASC
         `);
 
-        // Récupérer les Fournisseurs
         const [fournisseursResult] = await pool.execute(`
             SELECT 
                 id_fournisseur, 
@@ -658,7 +573,6 @@ ipcMain.on('get-livre-dependencies-for-add', async (event) => {
             ORDER BY nom_fournisseur ASC
         `);
 
-        // 🚨 POINT DE CONTRÔLE : Vérifiez que ceci s'affiche dans votre console main.js !
         console.log(`Dépendances Livre chargées. Auteurs: ${auteursResult.length}, Fournisseurs: ${fournisseursResult.length}`);
 
         event.sender.send('get-livre-dependencies-for-add-response', { 
@@ -668,7 +582,6 @@ ipcMain.on('get-livre-dependencies-for-add', async (event) => {
         });
 
     } catch (error) {
-        // C'EST L'ERREUR QUI DOIT APPARAÎTRE SI ÇA NE MARCHE PAS
         console.error("ERREUR CRITIQUE DE CHARGEMENT DES DÉPENDANCES (main.js):", error);
         event.sender.send('get-livre-dependencies-for-add-response', { 
             success: false, 
@@ -677,7 +590,6 @@ ipcMain.on('get-livre-dependencies-for-add', async (event) => {
     }
 });
 
-// 4.8. Gère l'insertion d'un nouveau livre
 ipcMain.on('add-livre', async (event, livreData) => {
     console.log('Tentative d\'enregistrement d\'un livre:', livreData);
 
@@ -687,12 +599,11 @@ ipcMain.on('add-livre', async (event, livreData) => {
         VALUES (?, ?, ?, ?);
     `;
     
-    // Les valeurs à insérer (statut par défaut 'disponible')
     const values = [
         livreData.titre_livre,
         livreData.statut_livre || 'disponible',
-        livreData.id_auteur || null,       // Laisse NULL si non fourni
-        livreData.id_fournisseur || null   // Laisse NULL si non fourni
+        livreData.id_auteur || null,       
+        livreData.id_fournisseur || null   
     ];
 
     try {
@@ -708,7 +619,7 @@ ipcMain.on('add-livre', async (event, livreData) => {
     } catch (error) {
         console.error("Erreur d'insertion du livre dans la base de données:", error);
         
-        // Note: Les erreurs de clé étrangère (si Auteur/Fournisseur n'existent pas) seront capturées ici
+        
         let message = error.message;
         if (error.code === 'ER_NO_REFERENCED_ROW_2') {
              message = "Erreur: L'ID Auteur ou l'ID Fournisseur spécifié n'existe pas dans la base de données.";
@@ -721,16 +632,13 @@ ipcMain.on('add-livre', async (event, livreData) => {
     }
 });
 
-// main.js (Ajouter dans la Section 4. GESTION DES EVENEMENTS IPC)
 
-// 4.9. Récupération de la liste des livres (avec noms joints et support de la recherche filtrée)
 ipcMain.on('get-livres', async (event, filters = {}) => {
     console.log('Tentative de récupération de la liste des livres avec filtres:', filters);
 
     let whereClauses = [];
     let values = [];
 
-    // Construction dynamique de la clause WHERE
     if (filters.titre_livre) {
         whereClauses.push(`L.titre_livre LIKE ?`);
         values.push(`%${filters.titre_livre}%`);
@@ -741,7 +649,6 @@ ipcMain.on('get-livres', async (event, filters = {}) => {
         values.push(filters.statut_livre);
     }
     
-    // FILTRES BASÉS SUR LES JOINTURES (NOM)
     if (filters.nom_auteur_complet) {
         whereClauses.push(`CONCAT(A.prenom_auteur, ' ', A.nom_auteur) LIKE ?`);
         values.push(`%${filters.nom_auteur_complet}%`);
@@ -792,14 +699,11 @@ ipcMain.on('get-livres', async (event, filters = {}) => {
     }
 });
 
-// main.js - NOUVELLES FONCTIONS À AJOUTER
 
-// 5.X. Récupération des dépendances (Auteurs et Fournisseurs) pour les listes déroulantes d'édition
 ipcMain.on('get-livre-dependencies', async (event) => {
     try {
         if (!pool) throw new Error("La connexion à la base de données n'est pas initialisée.");
 
-        // Récupérer les Auteurs
         const [auteursResult] = await pool.execute(`
             SELECT 
                 id_auteur, 
@@ -808,7 +712,6 @@ ipcMain.on('get-livre-dependencies', async (event) => {
             ORDER BY nom_auteur_complet
         `);
 
-        // Récupérer les Fournisseurs
         const [fournisseursResult] = await pool.execute(`
             SELECT 
                 id_fournisseur, 
@@ -833,7 +736,6 @@ ipcMain.on('get-livre-dependencies', async (event) => {
 });
 
 
-// 5.Y. Mise à jour d'un livre
 ipcMain.on('update-livre', async (event, livreData) => {
     console.log('Tentative de mise à jour du livre:', livreData);
 
@@ -864,7 +766,6 @@ ipcMain.on('update-livre', async (event, livreData) => {
         WHERE id_livre = ?
     `;
     
-    // Note: id_auteur et id_fournisseur peuvent être null
     const values = [
         titre_livre, 
         id_auteur, 
@@ -897,7 +798,6 @@ ipcMain.on('get-emprunt-add-dependencies', async (event) => {
     try {
         if (!pool) throw new Error("La connexion à la base de données n'est pas initialisée.");
 
-        // 1. Récupérer les Utilisateurs (Nom complet et ID)
         const [utilisateursResult] = await pool.execute(`
             SELECT 
                 id_utilisateur, 
@@ -911,7 +811,6 @@ ipcMain.on('get-emprunt-add-dependencies', async (event) => {
             ORDER BY nom_complet_affichage ASC
         `);
 
-        // 2. Récupérer les Livres (UNIQUEMENT DISPONIBLES)
         const [livresResult] = await pool.execute(`
             SELECT 
                 id_livre, 
@@ -921,7 +820,6 @@ ipcMain.on('get-emprunt-add-dependencies', async (event) => {
             ORDER BY titre_livre ASC
         `);
 
-        // NOM DE RÉPONSE IPC SPÉCIFIQUE
         event.sender.send('get-emprunt-add-dependencies-response', { 
             success: true, 
             utilisateurs: utilisateursResult, 
@@ -937,11 +835,6 @@ ipcMain.on('get-emprunt-add-dependencies', async (event) => {
     }
 });
 
-// main.js (Ajouter dans la Section 4. GESTION DES EVENEMENTS IPC)
-
-// 4.10. Gère l'insertion d'un nouvel emprunt (sans vérification de disponibilité du livre)
-// main.js - Gère l'insertion d'un nouvel emprunt ET la mise à jour du statut du livre
-
 ipcMain.on('add-emprunt', async (event, empruntData) => {
     console.log('Tentative d\'enregistrement d\'un emprunt:', empruntData);
 
@@ -951,23 +844,20 @@ ipcMain.on('add-emprunt', async (event, empruntData) => {
         VALUES (?, ?, ?, ?, ?, ?);
     `;
     
-    // Les valeurs à insérer dans la table 'emprunt'
     const insertValues = [
         empruntData.id_utilisateur,
         empruntData.id_livre,
         empruntData.date_emprunt,
         empruntData.statut_emprunt,
         empruntData.date_limite_retour_emprunt,
-        empruntData.date_retour_emprunt || null // Permet l'insertion de NULL
+        empruntData.date_retour_emprunt || null 
     ];
 
     try {
         if (!pool) throw new Error("La connexion à la base de données n'est pas initialisée.");
 
-        // 1. Insertion de l'emprunt
         const [result] = await pool.execute(insertSql, insertValues);
         
-        // 2. Logique de mise à jour du statut du livre
         let nouveauStatutLivre;
         const statutEmprunt = empruntData.statut_emprunt.toLowerCase();
 
@@ -976,11 +866,9 @@ ipcMain.on('add-emprunt', async (event, empruntData) => {
         } else if (statutEmprunt === 'retourné') {
             nouveauStatutLivre = 'disponible';
         } else {
-            // Si le statut de l'emprunt est inconnu, ne rien faire ou définir un statut par défaut
             nouveauStatutLivre = null; 
         }
 
-        // 3. Mise à jour du statut dans la table 'livre' (si un statut a été déterminé)
         if (nouveauStatutLivre) {
             const updateLivreSql = `
                 UPDATE livre 
@@ -994,7 +882,7 @@ ipcMain.on('add-emprunt', async (event, empruntData) => {
         event.sender.send('add-emprunt-response', { 
             success: true, 
             id: result.insertId,
-            statut_livre_mis_a_jour: nouveauStatutLivre // Pour confirmation côté client
+            statut_livre_mis_a_jour: nouveauStatutLivre
         });
 
     } catch (error) {
@@ -1012,16 +900,12 @@ ipcMain.on('add-emprunt', async (event, empruntData) => {
     }
 });
 
-// main.js (Ajouter dans la Section 4. GESTION DES EVENEMENTS IPC)
 
-// 4.11. Récupération de la liste des emprunts (avec support de la recherche filtrée par date exacte)
 ipcMain.on('get-emprunts', async (event, filters = {}) => {
     console.log('Tentative de récupération de la liste des emprunts avec filtres:', filters);
 
     let whereClauses = [];
     let values = [];
-
-    // --- FILTRES DE TYPE TEXTUEL/SÉLECTION ---
 
     if (filters.titre_livre) {
         whereClauses.push(`L.titre_livre LIKE ?`);
@@ -1038,25 +922,18 @@ ipcMain.on('get-emprunts', async (event, filters = {}) => {
         values.push(filters.statut_emprunt);
     }
     
-    // --- FILTRES DE DATE EXACTE ---
-    
-    // Date d'Emprunt (E.date_emprunt)
+ 
     if (filters.date_emprunt) {
-        // Recherche d'une date spécifique (DATE(colonne) = date_saisie)
         whereClauses.push(`DATE(E.date_emprunt) = ?`);
         values.push(filters.date_emprunt);
     }
 
-    // Date Limite de Retour (E.date_limite_retour_emprunt)
     if (filters.date_limite) {
-        // Recherche d'une date spécifique
         whereClauses.push(`DATE(E.date_limite_retour_emprunt) = ?`);
         values.push(filters.date_limite);
     }
     
-    // Date de Retour Réelle (E.date_retour_emprunt)
     if (filters.date_retour) {
-        // Recherche d'une date spécifique
         whereClauses.push(`DATE(E.date_retour_emprunt) = ?`);
         values.push(filters.date_retour);
     }
@@ -1105,17 +982,14 @@ ipcMain.on('get-emprunts', async (event, filters = {}) => {
     }
 });
 
-// main.js - NOUVELLE ROUTE : Récupération des dépendances d'emprunt (Livres/Utilisateurs)
 ipcMain.on('get-emprunt-dependencies', async (event) => {
     try {
         if (!pool) throw new Error("La connexion à la base de données n'est pas initialisée.");
 
-        // Récupérer tous les livres (ID et titre)
         const [livresRows] = await pool.execute(
             `SELECT id_livre, titre_livre FROM livre ORDER BY titre_livre`
         );
         
-        // Récupérer tous les utilisateurs (ID et nom complet)
         const [utilisateursRows] = await pool.execute(
             `SELECT id_utilisateur, CONCAT(prenom_utilisateur, ' ', nom_utilisateur) AS nom_complet FROM utilisateur ORDER BY nom_complet`
         );
@@ -1136,23 +1010,13 @@ ipcMain.on('get-emprunt-dependencies', async (event) => {
 });
 
 
-// main.js - NOUVELLE ROUTE : Mise à jour d'un emprunt
-// main.js - Gère la mise à jour d'un emprunt ET la synchronisation du statut du livre
-
-// main.js - Gère la mise à jour d'un emprunt AVEC VÉRIFICATION DE L'ÉTAT GLOBAL DU LIVRE
-
 ipcMain.on('update-emprunt', async (event, data) => {
     try {
         if (!pool) throw new Error("La connexion à la base de données n'est pas initialisée.");
         
-        const { id_emprunt, id_livre, statut_emprunt } = data; // On récupère seulement les données nécessaires pour le statut
-
-        // ... (vérifications des données ici, le reste de votre logique est correct) ...
-
-        // Si la date de retour est vide, on la met à NULL dans la base de données
+        const { id_emprunt, id_livre, statut_emprunt } = data; 
         const dateRetourValue = data.date_retour || null;
 
-        // 1. Mise à jour de l'enregistrement de l'emprunt (Inchangé)
         const updateEmpruntSql = `
             UPDATE emprunt SET
                 id_livre = ?, 
@@ -1175,18 +1039,14 @@ ipcMain.on('update-emprunt', async (event, data) => {
 
         await pool.execute(updateEmpruntSql, updateEmpruntValues);
         
-        // --- NOUVELLE LOGIQUE CRITIQUE DE STATUT DU LIVRE ---
-
         let nouveauStatutLivre;
         const statutEmpruntModifie = statut_emprunt.toLowerCase();
 
         if (statutEmpruntModifie === 'en cours' || statutEmpruntModifie === 'en retard') {
-            // Si l'emprunt modifié est actif, le livre DOIT être marqué comme 'emprunté'.
             nouveauStatutLivre = 'emprunté';
             
         } else if (statutEmpruntModifie === 'retourné') {
             
-            // Si l'emprunt est 'retourné', vérifions s'il reste d'autres emprunts actifs pour ce livre.
             const [activeEmprunts] = await pool.execute(
                 `
                 SELECT COUNT(*) AS count 
@@ -1197,21 +1057,16 @@ ipcMain.on('update-emprunt', async (event, data) => {
                 [id_livre]
             );
 
-            // S'il reste des emprunts actifs, le livre reste 'emprunté'.
             if (activeEmprunts[0].count > 0) {
                 nouveauStatutLivre = 'emprunté';
             } else {
-                // S'il n'y a plus d'emprunts actifs, le livre redevient 'disponible'.
                 nouveauStatutLivre = 'disponible';
             }
         } else {
-            // Statut inconnu, on ne met rien à jour.
             nouveauStatutLivre = null; 
         }
 
-        // --- FIN DE LA NOUVELLE LOGIQUE ---
-        
-        // 3. Exécution de la mise à jour dans la table 'livre'
+
         if (nouveauStatutLivre) {
             const updateLivreSql = `
                 UPDATE livre 
@@ -1229,7 +1084,6 @@ ipcMain.on('update-emprunt', async (event, data) => {
         });
 
     } catch (error) {
-        // ... (gestion des erreurs inchangée) ...
         console.error("Erreur lors de la mise à jour de l'emprunt:", error);
         
         let message = error.message;
@@ -1245,13 +1099,71 @@ ipcMain.on('update-emprunt', async (event, data) => {
     }
 });
 
-// main.js - AJOUTER CE BLOC APRÈS VOS AUTRES IPC.on
+ipcMain.on('get-dashboard-stats', async (event) => {
+    console.log('Tentative de récupération des statistiques du dashboard...');
+    
+    try {
+        if (!pool) throw new Error("La connexion à la base de données n'est pas initialisée.");
+
+        const [
+            [livresTotal],
+            [livresEmpruntes],
+            [livresDispo],
+            [empruntsTotal],
+            [empruntsRetournes],
+            [empruntsRetard],
+            [utilisateursTotal],
+            [utilisateursInscrits],
+            [utilisateursDesabonnes],
+            [fournisseursTotal],
+            [auteursTotal]
+        ] = await Promise.all([
+            pool.execute('SELECT COUNT(*) AS total FROM livre;'),
+            pool.execute("SELECT COUNT(*) AS total FROM livre WHERE statut_livre = 'emprunté';"),
+            pool.execute("SELECT COUNT(*) AS total FROM livre WHERE statut_livre = 'disponible';"),
+            pool.execute('SELECT COUNT(*) AS total FROM emprunt;'),
+            pool.execute("SELECT COUNT(*) AS total FROM emprunt WHERE statut_emprunt = 'retourné';"),
+            pool.execute("SELECT COUNT(*) AS total FROM emprunt WHERE statut_emprunt = 'en retard';"),
+            pool.execute('SELECT COUNT(*) AS total FROM utilisateur;'),
+            pool.execute("SELECT COUNT(*) AS total FROM utilisateur WHERE statut_utilisateur = 'inscrit';"),
+            pool.execute("SELECT COUNT(*) AS total FROM utilisateur WHERE statut_utilisateur = 'désabonné';"),
+            pool.execute('SELECT COUNT(*) AS total FROM fournisseur;'),
+            pool.execute('SELECT COUNT(*) AS total FROM auteur;')
+        ]);
+
+        event.sender.send('get-dashboard-stats-response', {
+            success: true,
+            stats: {
+                livresEnregistres: livresTotal[0].total,
+                livresEmpruntes: livresEmpruntes[0].total,
+                livresDisponibles: livresDispo[0].total,
+                countEmprunts: empruntsTotal[0].total,
+                empruntsRetournes: empruntsRetournes[0].total,
+                empruntsRetard: empruntsRetard[0].total,
+                countUtilisateurs: utilisateursTotal[0].total,
+                utilisateursInscrits: utilisateursInscrits[0].total,
+                utilisateursDesabonnes: utilisateursDesabonnes[0].total,
+                countFournisseurs: fournisseursTotal[0].total,
+                countAuteurs: auteursTotal[0].total
+            }
+        });
+
+    } catch (error) {
+        console.error("Erreur lors de la récupération des statistiques du dashboard:", error);
+        
+        event.sender.send('get-dashboard-stats-response', {
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+
 
 ipcMain.on('generate-emprunt-pdf-single', async (event, id_emprunt) => {
     try {
         if (!pool) throw new Error("La connexion à la base de données n'est pas initialisée.");
 
-        // 1. Récupérer les données spécifiques de l'emprunt (inclut les infos Livre/Utilisateur)
         const sql = `
             SELECT 
                 E.id_emprunt, 
@@ -1273,13 +1185,7 @@ ipcMain.on('generate-emprunt-pdf-single', async (event, id_emprunt) => {
             throw new Error(`Emprunt ID ${id_emprunt} introuvable.`);
         }
         const emprunt = rows[0];
-
-        // 2. Construction du contenu HTML pour la fiche PDF
         const statutClass = emprunt.statut_emprunt.toLowerCase().replace(' ', '-').replace('é', 'e'); 
-
-        // main.js - AJOUTER CECI AVANT const htmlContent = `
-
-        // Définir le chemin absolu de votre logo
         const logoPath = path.join(__dirname, 'logo.png');
         let logoDataUrl = '';
         if (fs.existsSync(logoPath)) {
@@ -1361,7 +1267,7 @@ ipcMain.on('generate-emprunt-pdf-single', async (event, id_emprunt) => {
         </div>
         
         <div class="header">
-            <h1>Fiche d'Emprunt N° ${emprunt.id_emprunt}</h1>
+            <h1>Fiche d'Emprunt</h1>
         </div>
         
         <div class="section">
@@ -1385,30 +1291,25 @@ ipcMain.on('generate-emprunt-pdf-single', async (event, id_emprunt) => {
                 <div class="info-row"><div class="info-label">Date d'Emprunt:</div><div class="info-value">${emprunt.date_emprunt}</div></div>
                 <div class="info-row"><div class="info-label">Statut Actuel:</div><div class="info-value"><span class="statut-${statutClass}">${emprunt.statut_emprunt}</span></div></div>
                 <div class="info-row"><div class="info-label">Limite de Retour:</div><div class="info-value">${emprunt.date_limite_retour}</div></div>
-                <div class="info-row"><div class="info-label">Retour Réel:</div><div class="info-value">${emprunt.date_retour || 'En attente'}</div></div>
+                <div class="info-row"><div class="info-label">Retour:</div><div class="info-value">${emprunt.date_retour || 'En attente'}</div></div>
             </div>
         </div>
 
         <div class="footer">
-            Généré par l'application Biblio ITA le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}
+            Biblio ITA ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}
         </div>
     </body>
     </html>
 `;
-
-        // 3. Génération du PDF
         const browser = await puppeteer.launch();
         const page = await browser.newPage();
         await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
         
-        // 1. Définir le répertoire cible (Documents/Bibliotech PDF)
         const targetDir = path.join(app.getPath('documents'), 'Bibliotech PDF');
-        // 2. Vérifier si le répertoire existe, sinon le créer de manière synchrone
         if (!fs.existsSync(targetDir)) {
             fs.mkdirSync(targetDir, { recursive: true });
             }
 
-        // 3. Définir le chemin final du fichier PDF
         const pdfPath = path.join(targetDir, `fiche_emprunt_${id_emprunt}_${Date.now()}.pdf`);
 
         await page.pdf({ 
@@ -1419,7 +1320,6 @@ ipcMain.on('generate-emprunt-pdf-single', async (event, id_emprunt) => {
 
         await browser.close();
 
-        // 4. Envoi de la réponse (pour ouvrir le fichier)
         event.sender.send('generate-emprunt-pdf-response', { 
             success: true, 
             path: pdfPath 
@@ -1434,42 +1334,29 @@ ipcMain.on('generate-emprunt-pdf-single', async (event, id_emprunt) => {
     }
 });
 
-// main.js - AJOUTER CE BLOC (Utilité pour ouvrir des fichiers)
 
 ipcMain.on('open-file-in-shell', (event, filePath) => {
     shell.openPath(filePath)
         .catch(err => console.error("Erreur lors de l'ouverture du fichier:", err));
 });
-// ------------------------------------
-// 4.3. Gère l'accès Visiteur et ouvre indexvis.html 🚪
-// ------------------------------------
+
 ipcMain.on('guest-access', (event) => {
     console.log("Processus principal a reçu la demande d'accès visiteur.");
-    
-    // Appel à la fonction unifiée pour charger indexvis.html
-    // Cette fonction gère automatiquement la fermeture de la fenêtre de login actuelle.
     createAndReplaceWindow('indexvis.html');
 });
 
-// ------------------------------------
-// 4.x. GÈRE LA CONNEXION (MOT DE PASSE SEUL)
-// ------------------------------------
 ipcMain.on('admin-authenticate', async (event, { password }) => { 
     console.log(`Tentative de connexion...`);
     
-    // Vérification directe du mot de passe secret
     if (password === ADMIN_SECRET_PASSWORD) {
-        // Connexion réussie
         event.sender.send('auth-response', { 
             success: true, 
             message: 'Accès autorisé. Redirection...'
         });
         
-        // Ouvre la fenêtre principale
         createAndReplaceWindow('index.html'); 
         
     } else {
-        // Échec
         event.sender.send('auth-response', { 
             success: false, 
             message: 'Mot de passe incorrect.' 

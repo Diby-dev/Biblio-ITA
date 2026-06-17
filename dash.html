@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Bibliothèque</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-image: url('./assets/dash.jpg');
+            background-size: cover;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 50px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .liste-sections {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .ligne-box {
+            background-color: #222733;
+            border: 1px solid #2f3646;
+            border-radius: 8px;
+            padding: 20px;
+            width: 100%;
+        }
+
+         #btn-retour {
+            position: relative;
+            font-size: 25px;
+            color:#ffffff ;
+            background-color: #6c757d;
+            top: 10px;
+            padding: 6px;
+        }
+
+        #btn-retour:hover {
+            background-color: #5a6268;
+        }
+
+        .titre-box {
+            font-size: 16px;
+            font-weight: bold;
+            color: #8a92a6;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .alignement-horizontal {
+            display: flex;
+            gap: 40px;
+        }
+
+        .info-bloc {
+            font-size: 20px;
+            color: #cbd5e1;
+        }
+
+        .nombre-stat {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-left: 5px;
+        }
+        
+    </style>
+</head>
+<body>
+    <button type="button" id="btn-retour" class="action-button">Retour au Menu</button>
+    <h1>Tableau de Bord</h1>
+
+    <div class="liste-sections">
+
+        <div class="ligne-box">
+            <div class="titre-box">Livres</div>
+            <div class="alignement-horizontal">
+                <span class="info-bloc">Total de livres enregistrés : <span class="nombre-stat" id="livres-enregistres">--</span></span>
+                <span class="info-bloc">Livres empruntés : <span class="nombre-stat" id="livres-empruntes">--</span></span>
+                <span class="info-bloc">Livres disponibles : <span class="nombre-stat" id="livres-disponibles">--</span></span>
+            </div>
+        </div>
+
+        <div class="ligne-box">
+            <div class="titre-box">Emprunts</div>
+            <div class="alignement-horizontal">
+                <span class="info-bloc">Total d'emprunts enregistrés : <span class="nombre-stat" id="count-emprunts">--</span></span>
+                <span class="info-bloc">Emprunt retourné : <span class="nombre-stat" id="emprunts-retournes">--</span></span>
+                <span class="info-bloc">Emprunt en retard : <span class="nombre-stat" id="emprunts-retard">--</span></span>
+            </div>
+        </div>
+
+        <div class="ligne-box">
+            <div class="titre-box">Utilisateurs</div>
+            <div class="alignement-horizontal">
+                <span class="info-bloc">Total d'Utilisateurs enregistrés : <span class="nombre-stat" id="count-utilisateurs">--</span></span>
+                <span class="info-bloc">Utilisateurs inscrits : <span class="nombre-stat" id="utilisateurs-inscrits">--</span></span>
+                <span class="info-bloc">Utilisateurs désabonnés : <span class="nombre-stat" id="utilisateurs-désabonnés">--</span></span>
+            </div>
+        </div>
+
+        <div class="ligne-box">
+            <div class="titre-box">Fournisseurs</div>
+            <div class="alignement-horizontal">
+                <span class="info-bloc">Total de fournisseurs enregistrés : <span class="nombre-stat" id="count-fournisseurs">--</span></span>
+            </div>
+        </div>
+
+        <div class="ligne-box">
+            <div class="titre-box">Auteurs</div>
+            <div class="alignement-horizontal">
+                <span class="info-bloc">Total d'auteurs enregistrés : <span class="nombre-stat" id="count-auteurs">--</span></span>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="dash-renderer.js"></script>
+</body>
+</html>

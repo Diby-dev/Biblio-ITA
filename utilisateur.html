@@ -11,34 +11,45 @@
             background-image: url('./assets/bo.jpg'); 
         }
         
-        /* ⬅️ STYLES DU BOUTON RETOUR EN HAUT À GAUCHE */
         #btn-retour {
-            position: absolute; /* Positionnement pour le placer dans le coin */
+            position: absolute;
             top: 20px;
             left: 20px;
             padding: 8px 12px;
             font-size: 18px; 
-            background-color: #6c757d; /* Gris foncé */
+            background-color: #6c757d;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            z-index: 10; /* Assurer qu'il est au-dessus des autres éléments */
+            z-index: 10;
         }
+
         #btn-retour:hover {
             background-color: #5a6268;
         }
 
         h1 { 
             color: #ffffff; 
-            /* Ajout d'une marge pour ne pas chevaucher le bouton Retour */
             margin-top: 50px;
             margin-left: 340px; 
             
         }
 
-        form { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
-        label { display: block; margin-top: 10px; font-weight: bold; }
+        form { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            max-width: 600px; 
+            margin: auto; 
+        }
+
+        label { 
+            display: block; 
+            margin-top: 10px; 
+            font-weight: bold; 
+        }
         
         input[type="text"], input[type="tel"], select {
             width: 100%;
@@ -49,7 +60,6 @@
             box-sizing: border-box;
         }
         
-        /* Styles pour les boutons (Mis à jour pour Flex) */
         .action-button {
             padding: 10px 15px;
             border: none;
@@ -58,26 +68,48 @@
             font-size: 16px;
             margin-top: 0; 
         }
+        
         .primary-button {
-            background-color: #4CAF50; /* Vert pour Enregistrer */
+            background-color: #4CAF50; 
             color: white;
         }
-        #btn-voir-liste {
-            background-color: #007bff; /* Bleu pour Voir la liste */
-            color: white;
-        }
-        #btn-voir-liste:hover { background-color: #0056b3; }
-        .primary-button:hover { background-color: #45a049; }
 
-        /* Styles de messages existants */
-        #message { margin-top: 15px; padding: 10px; border-radius: 4px; }
-        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        #btn-voir-liste {
+            background-color: #007bff;
+            color: white;
+        }
+
+        #btn-voir-liste:hover { 
+            background-color: #0056b3; 
+        }
+
+        .primary-button:hover { 
+            background-color: #45a049; 
+        }
+
+        #message { 
+            margin-top: 15px; 
+            padding: 10px; 
+            border-radius: 4px; 
+        }
+
+        .success { 
+            background-color: #d4edda; 
+            color: #155724; 
+            border: 1px solid #c3e6cb; 
+        }
+
+        .error { 
+            background-color: #f8d7da; 
+            color: #721c24; 
+            border: 1px solid #f5c6cb; 
+        }
+
     </style>
 </head>
 <body>
     
-    <button type="button" id="btn-retour" class="action-button">⬅️ Retour au Menu</button>
+    <button type="button" id="btn-retour" class="action-button">Retour au Menu</button>
     
     <h1>Enregistrement d'un Nouvel Utilisateur</h1>
     <form id="user-form">
@@ -95,10 +127,10 @@
             <option value="Autre">Autre</option>
         </select>
 
-        <label for="classe">Classe (Optionnel) :</label>
+        <label for="classe">Classe :</label>
         <input type="text" id="classe" name="classe_utilisateur" maxlength="24">
         
-        <label for="filiere">Filière (Optionnel) :</label>
+        <label for="filiere">Filière :</label>
         <input type="text" id="filiere" name="filiere_utilisateur" maxlength="90">
 
         <label for="contact">Contact :</label>

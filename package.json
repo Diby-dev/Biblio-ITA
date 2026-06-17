@@ -1,7 +1,7 @@
 {
   "name": "projet-bibliotheque",
   "version": "1.0.0",
-  "description": "Application de gestion de bibliothèque basée sur Electron et MySQL.",
+  "description": "Application de gestion de bibliothèque",
   "main": "main.js",
   "scripts": {
     "start": "electron .",

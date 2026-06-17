@@ -2,9 +2,8 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Connexion Secrète</title>
+    <title>Connexion</title>
     <style>
-        /* Styles CSS pour la fenêtre de connexion */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #aeaeca;
@@ -33,7 +32,7 @@
             font-weight: 600;
         }
              .logo-accueil{
-            width: 170px; /* C'est cette valeur que vous devez ajuster. */
+            width: 170px;
             height: 140px;
             top: -3px;
             left: 596px;
@@ -104,6 +103,7 @@
             font-size: 0.9em;
             font-weight: 500;
         }
+
     </style>
 </head>
 <body>
@@ -112,10 +112,8 @@
         <h2>CONNEXION</h2>
         <form id="login-form">
     <label for="password">Mot de Passe Secret :</label>
-    <input type="password" id="password" placeholder="Entrez le mot de passe si vous êtes un administrateur" required>
-    
-    <button type="submit" class="butad">Déverrouiller et Accéder à l'espace administrateur</button>
-    
+    <input type="password" id="password" placeholder="Entrez le mot de passe si vous êtes un bibliothecaire" required>
+    <button type="submit" class="butad">Déverrouiller et Accéder à l'espace de gestion</button>
     <button type="button" id="btn-acces-visiteur" class="butvi">Accès visiteur</button>
     
     <div id="message"></div>
