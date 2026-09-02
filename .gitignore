@@ -1,12 +1,18 @@
-/node_modules
-/dist
+# Dépendances Node.js (toujours à exclure, très lourd)
+node_modules/
 
-*.log
+# Dossiers de build / compilation / distribution
+dist/
+buildimg/
+build/
+out/
 
-.env
-.env.*
+# Dossiers de données locales ou sensibles (si stockés localement)
+base de D/
 
-.vscode/
-
+# Fichiers de logs et d'erreurs système
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 .DS_Store
 Thumbs.db

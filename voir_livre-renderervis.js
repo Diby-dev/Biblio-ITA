@@ -177,12 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const actionCell = row.insertCell();
                 actionCell.className = 'action-cell';
-                actionCell.innerHTML = '<button class="edit-btn" data-id="' + livre.id_livre + '">Modifier</button>';
-                
-                actionCell.querySelector('.edit-btn').addEventListener('click', (e) => {
-                    e.stopPropagation(); 
-                    enterEditMode(livre.id_livre, livre);
-                });
+                actionCell.textContent = '';
             });
 
         } else {
@@ -224,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (backButton) {
         backButton.addEventListener('click', () => {
 
-            ipcRenderer.send('open-window', 'livre.html');
+            ipcRenderer.send('open-window', 'indexvis.html');
         });
     } else {
         console.error("Erreur: Le bouton #btn-retour n'a pas été trouvé.");
