@@ -29,6 +29,7 @@ function montrelivre(ipcMain, pool) {
             SELECT 
                 L.id_livre, 
                 L.titre_livre, 
+                L.image_livre,
                 L.statut_livre,
                 IFNULL(L.exemplaire_livre, 0) AS exemplaire_livre,
                 L.id_auteur,

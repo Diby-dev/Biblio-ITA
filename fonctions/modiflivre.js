@@ -1,3 +1,5 @@
+const { enregistrerImageLivre } = require('./imageLivre');
+
 function modiflivre(ipcMain, pool) {
     ipcMain.on('update-livre', async (event, livreData) => {
         console.log('Tentative de mise à jour du livre:', livreData);
@@ -8,7 +10,8 @@ function modiflivre(ipcMain, pool) {
             id_auteur, 
             id_fournisseur, 
             exemplaire_livre,
-            statut_livre 
+            statut_livre,
+            imageSourcePath
         } = livreData;
     
         if (!id_livre || !titre_livre) {
@@ -24,28 +27,33 @@ function modiflivre(ipcMain, pool) {
         const exemplaires = isNaN(nbExemplaires) || nbExemplaires < 0 ? 0 : nbExemplaires;
         const statut = exemplaires > 0 ? 'disponible' : 'vide';
     
-        const sql = `
-            UPDATE livre 
-            SET 
-                titre_livre = ?, 
-                id_auteur = ?, 
-                id_fournisseur = ?, 
-                statut_livre = ?,
-                exemplaire_livre = ?
-            WHERE id_livre = ?
-        `;
+        const champs = [
+            'titre_livre = ?',
+            'id_auteur = ?',
+            'id_fournisseur = ?',
+            'statut_livre = ?',
+            'exemplaire_livre = ?'
+        ];
         
         const values = [
             titre_livre, 
             id_auteur, 
             id_fournisseur, 
             statut,
-            exemplaires,
-            id_livre
+            exemplaires
         ];
     
         try {
             if (!pool) throw new Error("La connexion à la base de données n'est pas initialisée.");
+
+            if (imageSourcePath) {
+                const imageLivre = await enregistrerImageLivre(imageSourcePath);
+                champs.push('image_livre = ?');
+                values.push(imageLivre);
+            }
+
+            values.push(id_livre);
+            const sql = `UPDATE livre SET ${champs.join(', ')} WHERE id_livre = ?`;
     
             const [result] = await pool.execute(sql, values);
             

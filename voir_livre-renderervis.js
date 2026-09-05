@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const backButton = document.getElementById('btn-retour');
     
 
-    const displayError = (message, colspan = 6) => {
+    const displayError = (message, colspan = 7) => {
         messageDiv.className = 'error';
         messageDiv.textContent = `Erreur : ${message}`;
         tableBody.innerHTML = `<tr><td colspan="${colspan}" style="text-align: center;">Erreur de chargement des données.</td></tr>`;
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadLivres = (filters = {}) => {
         messageDiv.textContent = 'Chargement de la liste des livres...';
         messageDiv.className = '';
-        tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Recherche en cours...</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Recherche en cours...</td></tr>';
         ipcRenderer.send('get-livres', filters);
     };
     
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         messageDiv.textContent = '';
         messageDiv.className = '';
         tableBody.innerHTML = '';
-        const colspan = 6; 
+        const colspan = 7;
 
         if (response.success) {
             const livres = response.livres;
@@ -59,6 +59,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const E = livre.emprunts_actifs || 0;
 
                 row.insertCell().textContent = livre.id_livre;
+                const imageCell = row.insertCell();
+                if (livre.image_livre) {
+                    const image = document.createElement('img');
+                    image.src = livre.image_livre;
+                    image.alt = `Couverture de ${livre.titre_livre}`;
+                    image.className = 'livre-image';
+                    imageCell.appendChild(image);
+                }
                 row.insertCell().textContent = livre.titre_livre;
                 row.insertCell().textContent = livre.nom_auteur_complet || 'Inconnu'; 
                 row.insertCell().textContent = livre.nom_fournisseur || 'Inconnu';

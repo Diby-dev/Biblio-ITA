@@ -12,6 +12,7 @@ function generationpdf(ipcMain, pool) {
             SELECT 
                 E.id_emprunt, 
                 L.titre_livre, 
+                L.image_livre,
                 CONCAT(U.prenom_utilisateur, ' ', U.nom_utilisateur) AS nom_utilisateur_complet,
                 DATE_FORMAT(E.date_emprunt, '%Y-%m-%d') AS date_emprunt, 
                 E.statut_emprunt, 
@@ -30,6 +31,27 @@ function generationpdf(ipcMain, pool) {
         }
         const emprunt = rows[0];
         const statutClass = emprunt.statut_emprunt.toLowerCase().replace(' ', '-').replace('é', 'e'); 
+
+        let imageLivreDataUrl = '';
+        if (emprunt.image_livre) {
+            const projectRoot = path.resolve(__dirname, '..');
+            const imageLivrePath = path.resolve(projectRoot, emprunt.image_livre);
+            const isImageInProject = imageLivrePath.startsWith(projectRoot + path.sep);
+            const mimeTypes = {
+                '.jpg': 'image/jpeg',
+                '.jpeg': 'image/jpeg',
+                '.png': 'image/png',
+                '.gif': 'image/gif',
+                '.webp': 'image/webp'
+            };
+            const mimeType = mimeTypes[path.extname(imageLivrePath).toLowerCase()];
+
+            if (isImageInProject && mimeType && fs.existsSync(imageLivrePath)) {
+                const imageBuffer = fs.readFileSync(imageLivrePath);
+                imageLivreDataUrl = `data:${mimeType};base64,${imageBuffer.toString('base64')}`;
+            }
+        }
+
         const logoPath = path.join(__dirname, '../logo.png');
         let logoDataUrl = '';
         if (fs.existsSync(logoPath)) {
@@ -125,6 +147,18 @@ function generationpdf(ipcMain, pool) {
                 background-color: #fff;
                 color: #111;
             }
+            .book-cover {
+                width: 120px;
+                height: 170px;
+                object-fit: cover;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                display: block;
+            }
+            .no-book-cover {
+                color: #666;
+                font-style: italic;
+            }
 
             /* STATUTS */
             .statut-en-cours { color: #007bff; font-weight: bold; }
@@ -180,6 +214,10 @@ function generationpdf(ipcMain, pool) {
         </div>
 
         <table class="data-table">
+            <tr>
+                <th>Image du Livre</th>
+                <td>${imageLivreDataUrl ? `<img src="${imageLivreDataUrl}" class="book-cover" alt="Couverture du livre">` : '<span class="no-book-cover">Aucune image disponible</span>'}</td>
+            </tr>
             <tr>
                 <th>Titre du Livre</th>
                 <td><strong>${emprunt.titre_livre || 'N/A'}</strong></td>

@@ -1,5 +1,7 @@
+const { enregistrerImageLivre } = require('./imageLivre');
+
 function ajoutlivre(ipcMain, pool) {
-    ipcMain.on('add-livre', async (event, livreData) => {
+    ipcMain.on('add-livre', async (event, livreData, imageSourcePath) => {
         console.log('Tentative d\'enregistrement d\'un livre:', livreData);
     
         const nbExemplaires = parseInt(livreData.exemplaire_livre, 10);
@@ -8,8 +10,8 @@ function ajoutlivre(ipcMain, pool) {
 
         const sql = `
             INSERT INTO livre 
-            (titre_livre, statut_livre, id_auteur, id_fournisseur, exemplaire_livre) 
-            VALUES (?, ?, ?, ?, ?);
+            (titre_livre, statut_livre, id_auteur, id_fournisseur, exemplaire_livre, image_livre)
+            VALUES (?, ?, ?, ?, ?, ?);
         `;
         
         const values = [
@@ -22,6 +24,9 @@ function ajoutlivre(ipcMain, pool) {
     
         try {
             if (!pool) throw new Error("La connexion à la base de données n'est pas initialisée.");
+
+            const imageLivre = await enregistrerImageLivre(imageSourcePath);
+            values.push(imageLivre);
     
             const [result] = await pool.execute(sql, values);
             
