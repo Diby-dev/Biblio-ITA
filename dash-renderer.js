@@ -10,10 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const stats = response.stats;
 
             document.getElementById('livres-enregistres').textContent = stats.livresEnregistres;
-            document.getElementById('livres-empruntes').textContent = stats.livresEmpruntes;
             document.getElementById('livres-disponibles').textContent = stats.livresDisponibles;
 
             document.getElementById('count-emprunts').textContent = stats.countEmprunts;
+            document.getElementById('emprunts-en-cours').textContent = stats.empruntsEnCours;
             document.getElementById('emprunts-retournes').textContent = stats.empruntsRetournes;
             document.getElementById('emprunts-retard').textContent = stats.empruntsRetard;
 

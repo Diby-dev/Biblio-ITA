@@ -7,15 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnTous = document.getElementById('btn-tous');
     const backButton = document.getElementById('btn-retour');
     
-    let editModeRowId = null; 
-    let initialData = { auteurs: [], fournisseurs: [] };
-
-    const editableFields = [
-        { index: 1, name: 'titre_livre', type: 'text' },
-        { index: 2, name: 'id_auteur', type: 'select', dataKey: 'auteurs', idKey: 'id_auteur', textKey: 'nom_auteur_complet' },
-        { index: 3, name: 'id_fournisseur', type: 'select', dataKey: 'fournisseurs', idKey: 'id_fournisseur', textKey: 'nom_fournisseur' },
-        { index: 4, name: 'statut_livre', type: 'select', options: ['Disponible', 'Emprunté'] }
-    ];
 
     const displayError = (message, colspan = 6) => {
         messageDiv.className = 'error';
@@ -40,109 +31,10 @@ document.addEventListener('DOMContentLoaded', () => {
         messageDiv.textContent = 'Chargement de la liste des livres...';
         messageDiv.className = '';
         tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Recherche en cours...</td></tr>';
-        
-        if (initialData.auteurs.length > 0 && initialData.fournisseurs.length > 0) {
-            ipcRenderer.send('get-livres', filters);
-        } else {
-             messageDiv.textContent = 'Initialisation des données (auteurs/fournisseurs)...';
-        }
+        ipcRenderer.send('get-livres', filters);
     };
     
-    function enterEditMode(livreId, currentData) {
-        if (editModeRowId && editModeRowId !== livreId) {
-            messageDiv.className = 'error';
-            messageDiv.textContent = 'Veuillez sauvegarder ou annuler la modification en cours sur l\'autre ligne.';
-            return;
-        }
-        
-        const row = tableBody.querySelector(`tr[data-livre-id="${livreId}"]`);
-        if (!row) return;
-
-        editModeRowId = livreId;
-        const cells = row.cells;
-        
-        editableFields.forEach(field => {
-            const cell = cells[field.index];
-            
-            if (field.type === 'text') {
-                const originalValue = cell.textContent.trim();
-                cell.innerHTML = `<input type="text" class="edit-input" name="${field.name}" value="${originalValue}">`;
-            
-            } else if (field.type === 'select' && field.options) {
-                const currentValue = cell.textContent.trim();
-                let optionsHTML = field.options.map(opt => 
-                    `<option value="${opt}" ${opt === currentValue ? 'selected' : ''}>${opt}</option>`
-                ).join('');
-                cell.innerHTML = `<select class="edit-select" name="${field.name}">${optionsHTML}</select>`;
-            
-            } else if (field.type === 'select' && field.dataKey) {
-                const dataList = initialData[field.dataKey];
-                
-                const currentId = currentData[field.idKey] || ''; 
-                
-                let optionsHTML = `<option value="">-- Non spécifié --</option>`;
-                
-                optionsHTML += dataList.map(item => 
-                    `<option value="${item[field.idKey]}" ${item[field.idKey] == currentId ? 'selected' : ''}>${item[field.textKey]}</option>`
-                ).join('');
-                cell.innerHTML = `<select class="edit-select" name="${field.name}">${optionsHTML}</select>`;
-            }
-        });
-
-        const actionCell = cells[5];
-        actionCell.innerHTML = `
-            <button class="save-button" data-id="${livreId}">Sauvegarder</button>
-            <button class="cancel-button">Annuler</button>
-        `;
-
-        actionCell.querySelector('.save-button').addEventListener('click', saveEdit);
-        actionCell.querySelector('.cancel-button').addEventListener('click', cancelEdit);
-    }
-    
-    function saveEdit(e) {
-        e.stopPropagation();
-        const livreId = e.target.dataset.id;
-        const row = tableBody.querySelector(`tr[data-livre-id="${livreId}"]`);
-        if (!row) return;
-
-        const cells = row.cells;
-        const livreData = { id_livre: livreId };
-
-        for (const field of editableFields) {
-            const input = cells[field.index].querySelector(`.edit-input, .edit-select`);
-            if (input) {
-                const value = input.value.trim();
-                livreData[field.name] = value === '' ? null : value;
-            }
-        }
-        
-        messageDiv.className = '';
-        messageDiv.textContent = `Sauvegarde du livre ID ${livreId} en cours...`;
-
-        ipcRenderer.send('update-livre', livreData);
-        
-        editModeRowId = null;
-    }
-    
-    function cancelEdit() {
-        if (!editModeRowId) return;
-
-        messageDiv.textContent = 'Modification annulée. Rechargement...';
-        editModeRowId = null;
-        loadLivres(getCurrentFilters()); 
-    }
-    
-    ipcRenderer.send('get-livre-dependencies');
-
-    ipcRenderer.on('get-livre-dependencies-response', (event, response) => {
-        if (response.success) {
-            initialData.auteurs = response.auteurs;
-            initialData.fournisseurs = response.fournisseurs;
-            loadLivres({});
-        } else {
-             displayError(`Impossible de charger les dépendances (Auteurs/Fournisseurs) : ${response.message}`);
-        }
-    });
+    loadLivres({});
 
     ipcRenderer.on('get-livres-response', (event, response) => {
         
@@ -163,21 +55,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 const row = tableBody.insertRow();
                 row.dataset.livreId = livre.id_livre; 
                 
-                const statut = livre.statut_livre || 'N/A';
-                const statutClass = `statut-${statut.toLowerCase().replace('é', 'e')}`; 
+                const exemplaires = parseInt(livre.exemplaire_livre, 10) || 0;
+                const E = livre.emprunts_actifs || 0;
 
                 row.insertCell().textContent = livre.id_livre;
                 row.insertCell().textContent = livre.titre_livre;
                 row.insertCell().textContent = livre.nom_auteur_complet || 'Inconnu'; 
                 row.insertCell().textContent = livre.nom_fournisseur || 'Inconnu';
+                row.insertCell().textContent = exemplaires;
                 
                 const statutCell = row.insertCell();
-                statutCell.textContent = statut;
-                statutCell.className = statutClass;
-                
-                const actionCell = row.insertCell();
-                actionCell.className = 'action-cell';
-                actionCell.textContent = '';
+                if (exemplaires > 0) {
+                    statutCell.textContent = `disponible (E: ${E})`;
+                    statutCell.className = 'statut-disponible';
+                } else {
+                    statutCell.textContent = `vide (E: ${E})`;
+                    statutCell.className = 'statut-vide';
+                }
             });
 
         } else {
@@ -186,33 +80,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    ipcRenderer.on('update-livre-response', (event, response) => {
-        if (response.success) {
-            messageDiv.className = '';
-            messageDiv.textContent = `Livre ID ${response.id} mis à jour avec succès! Rechargement...`;
-            loadLivres(getCurrentFilters());
-        } else {
-            displayError(`Échec de la mise à jour du livre ID ${response.id} : ${response.message}`, 6);
-            loadLivres(getCurrentFilters());
-        }
-    });
+
 
     searchForm.addEventListener('submit', (event) => {
         event.preventDefault(); 
-        if (editModeRowId) {
-             messageDiv.className = 'error';
-             messageDiv.textContent = 'Veuillez sauvegarder ou annuler la modification en cours.';
-             return;
-        }
         loadLivres(getCurrentFilters());
     });
 
     btnTous.addEventListener('click', () => {
-        if (editModeRowId) {
-             messageDiv.className = 'error';
-             messageDiv.textContent = 'Veuillez sauvegarder ou annuler la modification en cours.';
-             return;
-        }
         searchForm.reset(); 
         loadLivres({});
     });

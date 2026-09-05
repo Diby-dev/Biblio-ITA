@@ -14,10 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
         { index: 1, name: 'titre_livre', type: 'text' },
         { index: 2, name: 'id_auteur', type: 'select', dataKey: 'auteurs', idKey: 'id_auteur', textKey: 'nom_auteur_complet' },
         { index: 3, name: 'id_fournisseur', type: 'select', dataKey: 'fournisseurs', idKey: 'id_fournisseur', textKey: 'nom_fournisseur' },
-        { index: 4, name: 'statut_livre', type: 'select', options: ['Disponible', 'Emprunté'] }
+        { index: 4, name: 'exemplaire_livre', type: 'number' }
     ];
 
-    const displayError = (message, colspan = 6) => {
+    const displayError = (message, colspan = 7) => {
         messageDiv.className = 'error';
         messageDiv.textContent = `Erreur : ${message}`;
         tableBody.innerHTML = `<tr><td colspan="${colspan}" style="text-align: center;">Erreur de chargement des données.</td></tr>`;
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadLivres = (filters = {}) => {
         messageDiv.textContent = 'Chargement de la liste des livres...';
         messageDiv.className = '';
-        tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Recherche en cours...</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Recherche en cours...</td></tr>';
         
         if (initialData.auteurs.length > 0 && initialData.fournisseurs.length > 0) {
             ipcRenderer.send('get-livres', filters);
@@ -68,6 +68,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const originalValue = cell.textContent.trim();
                 cell.innerHTML = `<input type="text" class="edit-input" name="${field.name}" value="${originalValue}">`;
             
+            } else if (field.type === 'number') {
+                const originalValue = cell.textContent.trim();
+                cell.innerHTML = `<input type="number" min="0" step="1" class="edit-input" name="${field.name}" value="${originalValue}">`;
+
             } else if (field.type === 'select' && field.options) {
                 const currentValue = cell.textContent.trim();
                 let optionsHTML = field.options.map(opt => 
@@ -89,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        const actionCell = cells[5];
+        const actionCell = cells[6];
         actionCell.innerHTML = `
             <button class="save-button" data-id="${livreId}">Sauvegarder</button>
             <button class="cancel-button">Annuler</button>
@@ -149,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
         messageDiv.textContent = '';
         messageDiv.className = '';
         tableBody.innerHTML = '';
-        const colspan = 6; 
+        const colspan = 7; 
 
         if (response.success) {
             const livres = response.livres;
@@ -163,17 +167,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 const row = tableBody.insertRow();
                 row.dataset.livreId = livre.id_livre; 
                 
-                const statut = livre.statut_livre || 'N/A';
-                const statutClass = `statut-${statut.toLowerCase().replace('é', 'e')}`; 
+                const exemplaires = parseInt(livre.exemplaire_livre, 10) || 0;
+                const E = livre.emprunts_actifs || 0;
 
                 row.insertCell().textContent = livre.id_livre;
                 row.insertCell().textContent = livre.titre_livre;
                 row.insertCell().textContent = livre.nom_auteur_complet || 'Inconnu'; 
                 row.insertCell().textContent = livre.nom_fournisseur || 'Inconnu';
+                row.insertCell().textContent = exemplaires;
                 
                 const statutCell = row.insertCell();
-                statutCell.textContent = statut;
-                statutCell.className = statutClass;
+                if (exemplaires > 0) {
+                    statutCell.textContent = `disponible (E: ${E})`;
+                    statutCell.className = 'statut-disponible';
+                } else {
+                    statutCell.textContent = `vide (E: ${E})`;
+                    statutCell.className = 'statut-vide';
+                }
                 
                 const actionCell = row.insertCell();
                 actionCell.className = 'action-cell';
@@ -197,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
             messageDiv.textContent = `Livre ID ${response.id} mis à jour avec succès! Rechargement...`;
             loadLivres(getCurrentFilters());
         } else {
-            displayError(`Échec de la mise à jour du livre ID ${response.id} : ${response.message}`, 6);
+            displayError(`Échec de la mise à jour du livre ID ${response.id} : ${response.message}`, 7);
             loadLivres(getCurrentFilters());
         }
     });

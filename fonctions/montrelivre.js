@@ -30,10 +30,12 @@ function montrelivre(ipcMain, pool) {
                 L.id_livre, 
                 L.titre_livre, 
                 L.statut_livre,
-                L.id_auteur,         /* <--- NOUVEAU: ID Auteur */
-                L.id_fournisseur,    /* <--- NOUVEAU: ID Fournisseur */
+                IFNULL(L.exemplaire_livre, 0) AS exemplaire_livre,
+                L.id_auteur,
+                L.id_fournisseur,
                 CONCAT(A.prenom_auteur, ' ', A.nom_auteur) AS nom_auteur_complet,
-                F.nom_fournisseur
+                F.nom_fournisseur,
+                (SELECT COUNT(*) FROM emprunt E WHERE E.id_livre = L.id_livre AND E.statut_emprunt IN ('en cours', 'en retard')) AS emprunts_actifs
             FROM livre L
             LEFT JOIN auteur A ON L.id_auteur = A.id_auteur
             LEFT JOIN fournisseur F ON L.id_fournisseur = F.id_fournisseur

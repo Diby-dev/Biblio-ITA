@@ -22,6 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         livreData.id_auteur = livreData.id_auteur === '' ? null : livreData.id_auteur;
         livreData.id_fournisseur = livreData.id_fournisseur === '' ? null : livreData.id_fournisseur;
+        const exemplairesParsed = parseInt(livreData.exemplaire_livre, 10);
+        livreData.exemplaire_livre = isNaN(exemplairesParsed) || exemplairesParsed < 0 ? 0 : exemplairesParsed;
 
         messageDiv.className = '';
         messageDiv.textContent = 'Enregistrement du livre en cours...';

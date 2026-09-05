@@ -22,25 +22,21 @@ function ajoutemprunt(ipcMain, pool) {
     
             const [result] = await pool.execute(insertSql, insertValues);
             
-            let nouveauStatutLivre;
             const statutEmprunt = empruntData.statut_emprunt.toLowerCase();
+            let nouveauStatutLivre = null;
     
             if (statutEmprunt === 'en cours' || statutEmprunt === 'en retard') {
-                nouveauStatutLivre = 'emprunté';
-            } else if (statutEmprunt === 'retourné') {
-                nouveauStatutLivre = 'disponible';
-            } else {
-                nouveauStatutLivre = null; 
-            }
-    
-            if (nouveauStatutLivre) {
-                const updateLivreSql = `
+                await pool.execute(`
                     UPDATE livre 
-                    SET statut_livre = ? 
+                    SET 
+                        exemplaire_livre = GREATEST(0, IFNULL(exemplaire_livre, 1) - 1),
+                        statut_livre = IF(GREATEST(0, IFNULL(exemplaire_livre, 1) - 1) <= 0, 'vide', 'disponible')
                     WHERE id_livre = ?;
-                `;
-                await pool.execute(updateLivreSql, [nouveauStatutLivre, empruntData.id_livre]);
-                console.log(`Statut du livre ID ${empruntData.id_livre} mis à jour à: ${nouveauStatutLivre}`);
+                `, [empruntData.id_livre]);
+
+                const [[livreRow]] = await pool.execute(`SELECT statut_livre FROM livre WHERE id_livre = ?`, [empruntData.id_livre]);
+                nouveauStatutLivre = livreRow ? livreRow.statut_livre : 'disponible';
+                console.log(`Statut et exemplaire du livre ID ${empruntData.id_livre} mis à jour suite au nouvel emprunt.`);
             }
             
             event.sender.send('add-emprunt-response', { 

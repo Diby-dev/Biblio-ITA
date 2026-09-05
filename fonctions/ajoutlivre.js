@@ -2,17 +2,22 @@ function ajoutlivre(ipcMain, pool) {
     ipcMain.on('add-livre', async (event, livreData) => {
         console.log('Tentative d\'enregistrement d\'un livre:', livreData);
     
+        const nbExemplaires = parseInt(livreData.exemplaire_livre, 10);
+        const exemplaires = isNaN(nbExemplaires) || nbExemplaires < 0 ? 0 : nbExemplaires;
+        const statut = exemplaires > 0 ? 'disponible' : 'vide';
+
         const sql = `
             INSERT INTO livre 
-            (titre_livre, statut_livre, id_auteur, id_fournisseur) 
-            VALUES (?, ?, ?, ?);
+            (titre_livre, statut_livre, id_auteur, id_fournisseur, exemplaire_livre) 
+            VALUES (?, ?, ?, ?, ?);
         `;
         
         const values = [
             livreData.titre_livre,
-            livreData.statut_livre || 'disponible',
+            statut,
             livreData.id_auteur || null,       
-            livreData.id_fournisseur || null   
+            livreData.id_fournisseur || null,
+            exemplaires
         ];
     
         try {

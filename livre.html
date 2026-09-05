@@ -105,11 +105,8 @@
         <label for="titre">Titre du Livre :</label>
         <input type="text" id="titre" name="titre_livre" required>
 
-        <label for="statut">Statut :</label>
-        <select id="statut" name="statut_livre" required>
-            <option value="disponible">Disponible</option>
-            <option value="emprunté">Emprunté</option>
-        </select>
+        <label for="exemplaire">Nombre d'exemplaires :</label>
+        <input type="number" id="exemplaire" name="exemplaire_livre" min="0" step="1" value="1" required>
 
         <label for="id_auteur">Auteur (Optionnel) :</label>
         <select id="id_auteur" name="id_auteur">
