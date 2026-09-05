@@ -44,103 +44,183 @@ function generationpdf(ipcMain, pool) {
     <!DOCTYPE html>
     <html>
     <head>
+        <meta charset="UTF-8">
         <style>
-            body { font-family: Arial, sans-serif; margin: 50px; }
+            @page {
+                size: A4;
+                margin: 15mm;
+            }
+            body { 
+                font-family: Arial, sans-serif; 
+                margin: 0; 
+                padding: 0; 
+                color: #000;
+                font-size: 14px;
+                line-height: 1.5;
+            }
             
-            /* NOUVEAUX STYLES POUR L'EN-TÊTE SUPÉRIEUR */
+            /* EN-TÊTE OFFICIEL STYLE RELEVÉ DE NOTES */
             .top-header {
-                display: flex; 
-                align-items: center; 
-                /* Changement: Justifier le contenu pour qu'il soit regroupé à gauche */
-                justify-content: flex-start; /* Place le logo et le texte à gauche */
-                padding-bottom: 10px; 
-                margin-bottom: 10px; 
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                border-bottom: 2px solid #0056b3;
+                padding-bottom: 12px;
+                margin-bottom: 20px;
+            }
+            .top-header-left {
+                display: flex;
+                align-items: center;
             }
             .top-header-logo {
-                width: 100px; 
+                width: 85px;
                 height: auto;
-                /* Ajoute une marge pour séparer le logo du texte */
-                margin-right: 20px; 
+                margin-right: 15px;
             }
-            .top-header-text {
-                /* Suppression de flex-grow: 1, car nous ne voulons plus qu'il prenne tout l'espace */
-                /* flex-grow: 1; <-- à supprimer ou commenter */
-                text-align: left; /* Aligne le texte à gauche (près du logo) */
-                line-height: 1.2;
+            .institution-info {
+                font-size: 11px;
+                line-height: 1.3;
+                font-weight: bold;
+                color: #333;
             }
-            .top-header-text p {
-                margin: 0;
-                font-size: 14px;
-                color: #333; 
+            .top-header-right {
+                text-align: right;
+                font-size: 11px;
+                line-height: 1.3;
+                color: #555;
             }
-            
-            /* STYLES DU BANDEAU BLEU (HEADER) MIS À JOUR */
-            .header { 
-                background-color: #17a2b8; 
-                color: white; 
-                padding: 15px; 
-                border-radius: 8px 8px 0 0; 
-                text-align: center; /* Pour centrer le titre */
+
+            /* TITRE DU DOCUMENT */
+            .doc-title-container {
+                background-color: #0056b3;
+                color: white;
+                text-align: center;
+                padding: 10px;
+                font-weight: bold;
+                font-size: 16px;
+                text-transform: uppercase;
+                margin-bottom: 25px;
+                letter-spacing: 0.5px;
             }
-            h1 { 
-                margin: 0; 
-                font-size: 24px; 
+
+            /* TABLEAUX DE DONNÉES STRUCTURÉS */
+            .data-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 25px;
             }
-            
-            /* Styles du corps de la fiche (inchangés) */
-            .section { margin-top: 30px; padding: 15px; border: 1px solid #ddd; border-radius: 4px; }
-            .info-grid { display: table; width: 100%; border-collapse: collapse; }
-            .info-row { display: table-row; }
-            .info-label, .info-value { display: table-cell; padding: 10px; border-bottom: 1px solid #eee; }
-            .info-label { font-weight: bold; width: 35%; background-color: #f4f4f4; }
+            .data-table th, .data-table td {
+                border: 1px solid #ccc;
+                padding: 10px 12px;
+                text-align: left;
+                font-size: 13px;
+            }
+            .data-table th {
+                background-color: #f2f2f2;
+                font-weight: bold;
+                color: #333;
+                width: 32%;
+            }
+            .data-table td {
+                background-color: #fff;
+                color: #111;
+            }
+
+            /* STATUTS */
             .statut-en-cours { color: #007bff; font-weight: bold; }
-            .statut-retourne { color: green; font-weight: bold; } 
-            .statut-en-retard { color: red; font-weight: bold; }
-            .footer { text-align: right; margin-top: 50px; font-size: 10px; color: #666; }
+            .statut-retourne { color: #28a745; font-weight: bold; } 
+            .statut-en-retard { color: #dc3545; font-weight: bold; }
+
+            /* SECTION SIGNATURE / FOOTER */
+            .footer-section {
+                margin-top: 40px;
+                display: flex;
+                justify-content: space-between;
+                font-size: 12px;
+            }
+            .signature-box {
+                width: 220px;
+                height: 80px;
+                border: 1px dashed #bbb;
+                text-align: center;
+                padding-top: 8px;
+                color: #666;
+            }
+            .system-footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                text-align: center;
+                font-size: 10px;
+                color: #777;
+                border-top: 1px solid #ddd;
+                padding-top: 6px;
+            }
         </style>
     </head>
     <body>
         
         <div class="top-header">
-            <img src="${logoDataUrl}" class="top-header-logo" alt="Logo">
-            
-            <div class="top-header-text">
-                <p><strong>GROUPE ITA-INGENIERIE</strong></p>
-                <p>INSTITUT DES TECHNOLOGIES</p>
+            <div class="top-header-left">
+                ${logoDataUrl ? `<img src="${logoDataUrl}" class="top-header-logo" alt="Logo">` : ''}
+                <div class="institution-info">
+                    GROUPE ITA - INGENIERIE SA<br>
+                    INSTITUT DES TECHNOLOGIES ABIDJAN<br>
+                    DIRECTION ACADÉMIQUE / BIBLIOTHÈQUE
+                </div>
+            </div>
+            <div class="top-header-right">
+                20 BP 195 ABIDJAN 20<br>
             </div>
         </div>
         
-        <div class="header">
-            <h1>Fiche d'Emprunt</h1>
+        <div class="doc-title-container">
+            FICHE D'EMPRUNT DE LIVRE N° ${emprunt.id_emprunt}
         </div>
-        
-        <div class="section">
-            <h2>Informations du Livre</h2>
-            <div class="info-grid">
-                <div class="info-row"><div class="info-label">Titre:</div><div class="info-value">${emprunt.titre_livre || 'N/A'}</div></div>
+
+        <table class="data-table">
+            <tr>
+                <th>Titre du Livre</th>
+                <td><strong>${emprunt.titre_livre || 'N/A'}</strong></td>
+            </tr>
+            <tr>
+                <th>Nom de l'Emprunteur</th>
+                <td><strong>${emprunt.nom_utilisateur_complet || 'N/A'}</strong></td>
+            </tr>
+            <tr>
+                <th>Contact Emprunteur</th>
+                <td>${emprunt.contact_utilisateur || 'N/A'}</td>
+            </tr>
+            <tr>
+                <th>Date d'Emprunt</th>
+                <td>${emprunt.date_emprunt}</td>
+            </tr>
+            <tr>
+                <th>Date Limite de Retour</th>
+                <td>${emprunt.date_limite_retour}</td>
+            </tr>
+            <tr>
+                <th>Date de Retour Effective</th>
+                <td>${emprunt.date_retour || 'En attente de retour'}</td>
+            </tr>
+            <tr>
+                <th>Statut Actuel</th>
+                <td><span class="statut-${statutClass}">${emprunt.statut_emprunt}</span></td>
+            </tr>
+        </table>
+
+        <div class="footer-section">
+            <div>
+                <p>Document généré par la gestion de bibliothèque Biblio ITA.</p>
+            </div>
+            <div class="signature-box">
+                Cachet / Signature
             </div>
         </div>
 
-        <div class="section">
-            <h2>Informations de l'Emprunteur</h2>
-            <div class="info-grid">
-                <div class="info-row"><div class="info-label">Nom Complet:</div><div class="info-value">${emprunt.nom_utilisateur_complet || 'N/A'}</div></div>
-                <div class="info-row"><div class="info-label">Contact:</div><div class="info-value">${emprunt.contact_utilisateur || 'N/A'}</div></div>
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>Détails de l'Emprunt</h2>
-            <div class="info-grid">
-                <div class="info-row"><div class="info-label">Date d'Emprunt:</div><div class="info-value">${emprunt.date_emprunt}</div></div>
-                <div class="info-row"><div class="info-label">Statut Actuel:</div><div class="info-value"><span class="statut-${statutClass}">${emprunt.statut_emprunt}</span></div></div>
-                <div class="info-row"><div class="info-label">Limite de Retour:</div><div class="info-value">${emprunt.date_limite_retour}</div></div>
-                <div class="info-row"><div class="info-label">Retour:</div><div class="info-value">${emprunt.date_retour || 'En attente'}</div></div>
-            </div>
-        </div>
-
-        <div class="footer">
-            Biblio ITA ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}
+        <div class="system-footer">
+            Biblio ITA — Imprimé le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')} — Document officiel provisoire.
         </div>
     </body>
     </html>
@@ -152,7 +232,7 @@ function generationpdf(ipcMain, pool) {
         const targetDir = path.join(app.getPath('documents'), 'Bibliotech PDF');
         if (!fs.existsSync(targetDir)) {
             fs.mkdirSync(targetDir, { recursive: true });
-            }
+        }
 
         const pdfPath = path.join(targetDir, `fiche_emprunt_${id_emprunt}_${Date.now()}.pdf`);
 
