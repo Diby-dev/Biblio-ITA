@@ -192,7 +192,7 @@
             font-weight: bold; 
         }
 
-        .statut-emprunte { 
+        .statut-emprunte, .statut-vide { 
             color: red; 
             font-weight: bold; 
         }
@@ -227,8 +227,8 @@
                     <label for="search-statut">Statut :</label>
                     <select id="search-statut" name="statut_livre">
                         <option value="">Tous</option>
-                        <option value="Disponible">Disponible</option>
-                        <option value="Emprunté">Emprunté</option>
+                        <option value="disponible">Disponible</option>
+                        <option value="vide">Vide</option>
                     </select>
                 </div>
 
@@ -248,11 +248,12 @@
                 <th>Titre</th>
                 <th>Auteur</th>
                 <th>Fournisseur</th>
+                <th>Exemplaires</th>
                 <th>Statut</th>
                 <th>Action</th> </tr>
         </thead>
         <tbody id="livres-table-body">
-             <tr><td colspan="6" style="text-align: center;">Chargement...</td></tr>
+             <tr><td colspan="7" style="text-align: center;">Chargement...</td></tr>
         </tbody>
     </table>
 

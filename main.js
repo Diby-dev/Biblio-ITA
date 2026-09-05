@@ -46,10 +46,29 @@ let currentActiveWindow = null;
 
 
 
+async function migrateDatabase(pool) {
+    try {
+        await pool.query("ALTER TABLE livre MODIFY COLUMN statut_livre ENUM('disponible', 'vide', 'emprunté') NOT NULL DEFAULT 'disponible';");
+    } catch (e) {
+        console.log('Migration statut_livre notice:', e.message);
+    }
+    try {
+        const [columns] = await pool.query("SHOW COLUMNS FROM livre LIKE 'exemplaire_livre';");
+        if (columns.length === 0) {
+            await pool.query("ALTER TABLE livre ADD COLUMN exemplaire_livre INT NOT NULL DEFAULT 1;");
+            console.log("Colonne exemplaire_livre ajoutée avec succès.");
+        }
+    } catch (e) {
+        console.error("Erreur migration exemplaire_livre:", e.message);
+    }
+}
+
 function initializeDatabasePool() {
     try {
         pool = mysql.createPool(dbConfig);
         console.log('connexion à MySQL créé avec succès.');
+        
+        migrateDatabase(pool);
 
         ajoutuser(ipcMain, pool);
         modifuser(ipcMain, pool);

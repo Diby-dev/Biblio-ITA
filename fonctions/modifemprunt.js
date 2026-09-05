@@ -6,6 +6,11 @@ function modifemprunt(ipcMain, pool) {
             const { id_emprunt, id_livre, statut_emprunt } = data; 
             const dateRetourValue = data.date_retour || null;
     
+            const [[oldEmprunt]] = await pool.execute(
+                `SELECT id_livre, statut_emprunt FROM emprunt WHERE id_emprunt = ?`,
+                [id_emprunt]
+            );
+
             const updateEmpruntSql = `
                 UPDATE emprunt SET
                     id_livre = ?, 
@@ -27,44 +32,53 @@ function modifemprunt(ipcMain, pool) {
             ];
     
             await pool.execute(updateEmpruntSql, updateEmpruntValues);
-            
-            let nouveauStatutLivre;
-            const statutEmpruntModifie = statut_emprunt.toLowerCase();
-    
-            if (statutEmpruntModifie === 'en cours' || statutEmpruntModifie === 'en retard') {
-                nouveauStatutLivre = 'emprunté';
-                
-            } else if (statutEmpruntModifie === 'retourné') {
-                
-                const [activeEmprunts] = await pool.execute(
-                    `
-                    SELECT COUNT(*) AS count 
-                    FROM emprunt 
-                    WHERE id_livre = ? 
-                    AND statut_emprunt IN ('en cours', 'en retard')
-                    `, 
-                    [id_livre]
-                );
-    
-                if (activeEmprunts[0].count > 0) {
-                    nouveauStatutLivre = 'emprunté';
-                } else {
-                    nouveauStatutLivre = 'disponible';
+
+            const oldStatut = oldEmprunt ? oldEmprunt.statut_emprunt.toLowerCase() : '';
+            const newStatut = statut_emprunt.toLowerCase();
+            const wasActive = (oldStatut === 'en cours' || oldStatut === 'en retard');
+            const isActive = (newStatut === 'en cours' || newStatut === 'en retard');
+
+            if (oldEmprunt && oldEmprunt.id_livre != id_livre) {
+                if (wasActive) {
+                    await pool.execute(`
+                        UPDATE livre 
+                        SET 
+                            exemplaire_livre = IFNULL(exemplaire_livre, 0) + 1,
+                            statut_livre = IF(IFNULL(exemplaire_livre, 0) + 1 > 0, 'disponible', 'vide')
+                        WHERE id_livre = ?;
+                    `, [oldEmprunt.id_livre]);
+                }
+                if (isActive) {
+                    await pool.execute(`
+                        UPDATE livre 
+                        SET 
+                            exemplaire_livre = GREATEST(0, IFNULL(exemplaire_livre, 1) - 1),
+                            statut_livre = IF(GREATEST(0, IFNULL(exemplaire_livre, 1) - 1) <= 0, 'vide', 'disponible')
+                        WHERE id_livre = ?;
+                    `, [id_livre]);
                 }
             } else {
-                nouveauStatutLivre = null; 
+                if (wasActive && newStatut === 'retourné') {
+                    await pool.execute(`
+                        UPDATE livre 
+                        SET 
+                            exemplaire_livre = IFNULL(exemplaire_livre, 0) + 1,
+                            statut_livre = IF(IFNULL(exemplaire_livre, 0) + 1 > 0, 'disponible', 'vide')
+                        WHERE id_livre = ?;
+                    `, [id_livre]);
+                } else if (!wasActive && isActive) {
+                    await pool.execute(`
+                        UPDATE livre 
+                        SET 
+                            exemplaire_livre = GREATEST(0, IFNULL(exemplaire_livre, 1) - 1),
+                            statut_livre = IF(GREATEST(0, IFNULL(exemplaire_livre, 1) - 1) <= 0, 'vide', 'disponible')
+                        WHERE id_livre = ?;
+                    `, [id_livre]);
+                }
             }
-    
-    
-            if (nouveauStatutLivre) {
-                const updateLivreSql = `
-                    UPDATE livre 
-                    SET statut_livre = ? 
-                    WHERE id_livre = ?;
-                `;
-                await pool.execute(updateLivreSql, [nouveauStatutLivre, id_livre]); 
-                console.log(`Statut du livre ID ${id_livre} mis à jour à: ${nouveauStatutLivre} suite à la modification de l'emprunt.`);
-            }
+
+            const [[livreRow]] = await pool.execute(`SELECT statut_livre FROM livre WHERE id_livre = ?`, [id_livre]);
+            let nouveauStatutLivre = livreRow ? livreRow.statut_livre : null;
             
             event.sender.send('update-emprunt-response', {
                 success: true,

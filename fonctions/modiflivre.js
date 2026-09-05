@@ -7,17 +7,22 @@ function modiflivre(ipcMain, pool) {
             titre_livre, 
             id_auteur, 
             id_fournisseur, 
+            exemplaire_livre,
             statut_livre 
         } = livreData;
     
-        if (!id_livre || !titre_livre || !statut_livre) {
+        if (!id_livre || !titre_livre) {
             event.sender.send('update-livre-response', { 
                 success: false, 
                 id: id_livre || 'N/A',
-                message: "ID, Titre ou Statut du livre manquant(s) pour la mise à jour." 
+                message: "ID ou Titre du livre manquant pour la mise à jour." 
             });
             return;
         }
+
+        const nbExemplaires = parseInt(exemplaire_livre, 10);
+        const exemplaires = isNaN(nbExemplaires) || nbExemplaires < 0 ? 0 : nbExemplaires;
+        const statut = exemplaires > 0 ? 'disponible' : 'vide';
     
         const sql = `
             UPDATE livre 
@@ -25,7 +30,8 @@ function modiflivre(ipcMain, pool) {
                 titre_livre = ?, 
                 id_auteur = ?, 
                 id_fournisseur = ?, 
-                statut_livre = ?
+                statut_livre = ?,
+                exemplaire_livre = ?
             WHERE id_livre = ?
         `;
         
@@ -33,7 +39,8 @@ function modiflivre(ipcMain, pool) {
             titre_livre, 
             id_auteur, 
             id_fournisseur, 
-            statut_livre,
+            statut,
+            exemplaires,
             id_livre
         ];
     
