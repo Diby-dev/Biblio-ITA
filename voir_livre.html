@@ -196,6 +196,14 @@
             color: red; 
             font-weight: bold; 
         }
+
+        .livre-image {
+            width: 90px;
+            height: 120px;
+            border-radius: 6px;
+            object-fit: cover;
+            display: block;
+        }
         
         
     </style>
@@ -245,6 +253,7 @@
         <thead>
             <tr>
                 <th>ID</th>
+                <th>Image</th>
                 <th>Titre</th>
                 <th>Auteur</th>
                 <th>Fournisseur</th>
@@ -253,7 +262,7 @@
                 <th>Action</th> </tr>
         </thead>
         <tbody id="livres-table-body">
-             <tr><td colspan="7" style="text-align: center;">Chargement...</td></tr>
+             <tr><td colspan="8" style="text-align: center;">Chargement...</td></tr>
         </tbody>
     </table>
 

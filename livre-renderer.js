@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const formData = new FormData(form);
         const livreData = Object.fromEntries(formData.entries());
+        const imageFile = document.getElementById('image_livre').files[0];
+        delete livreData.image_livre;
 
         livreData.id_auteur = livreData.id_auteur === '' ? null : livreData.id_auteur;
         livreData.id_fournisseur = livreData.id_fournisseur === '' ? null : livreData.id_fournisseur;
@@ -28,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
         messageDiv.className = '';
         messageDiv.textContent = 'Enregistrement du livre en cours...';
 
-        ipcRenderer.send('add-livre', livreData);
+        ipcRenderer.send('add-livre', livreData, imageFile ? imageFile.path : null);
     });
 
     ipcRenderer.on('add-livre-response', (event, response) => {
