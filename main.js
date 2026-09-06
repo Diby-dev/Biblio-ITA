@@ -3,11 +3,11 @@ const path = require('path');
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 const puppeteer = require('puppeteer');
-const fs = require('fs'); 
+const fs = require('fs');
 
 
 const { ajoutuser } = require('./fonctions/ajoutuser');
-const { modifuser} = require('./fonctions/modifuser');
+const { modifuser } = require('./fonctions/modifuser');
 const { montreuser } = require('./fonctions/montreuser');
 const { ajoutauteur } = require('./fonctions/ajoutauteur');
 const { modifauteur } = require('./fonctions/modifauteur');
@@ -15,7 +15,7 @@ const { montreauteur } = require('./fonctions/montreauteur');
 const { ajoutfournisseur } = require('./fonctions/ajoutfournisseur');
 const { modiffournisseur } = require('./fonctions/modiffournisseur');
 const { montrefournisseur } = require('./fonctions/montrefournisseur');
-const { dependancelivre} = require('./fonctions/dependancelivre');
+const { dependancelivre } = require('./fonctions/dependancelivre');
 const { ajoutlivre } = require('./fonctions/ajoutlivre');
 const { montrelivre } = require('./fonctions/montrelivre');
 const { dependancelivre2 } = require('./fonctions/dependancelivre2');
@@ -31,18 +31,22 @@ const { admin } = require('./fonctions/admin');
 
 
 const dbConfig = {
-    host: 'localhost',
-    user: 'root',
-    password: '',
+    host: 'mysql-40cfbf8-dibyjeanyves02-aa9d.c.aivencloud.com',
+    port: 12247,
+    user: 'avnadmin',
+    password: 'AVNS_1Ve-VNz6Cc0MGlEF5ZS',
     database: 'bibliotheque',
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    ssl: {
+        rejectUnauthorized: false
+    }
 };
 
-let pool; 
+let pool;
 const openWindows = new Set();
-let currentActiveWindow = null; 
+let currentActiveWindow = null;
 let accessMode = 'none';
 const authAttempts = new Map();
 const AUTH_WINDOW_MS = 60 * 1000;
@@ -112,7 +116,7 @@ function initializeDatabasePool() {
     try {
         pool = mysql.createPool(dbConfig);
         console.log('connexion à MySQL créé avec succès.');
-        
+
         migrateDatabase(pool);
 
         const adminIpc = createAdminOnlyIpc(ipcMain);
@@ -174,7 +178,7 @@ function createAndReplaceWindow(targetFile) {
     newWindow.webContents.on('will-navigate', (event) => event.preventDefault());
     currentActiveWindow = newWindow;
     newWindow.on('closed', () => {
-   
+
         if (currentActiveWindow === newWindow) {
             currentActiveWindow = null;
         }
@@ -182,8 +186,8 @@ function createAndReplaceWindow(targetFile) {
 }
 
 app.whenReady().then(() => {
-    initializeDatabasePool(); 
-    createAndReplaceWindow('login.html');       
+    initializeDatabasePool();
+    createAndReplaceWindow('login.html');
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createAndReplaceWindow('login.html');
@@ -266,17 +270,17 @@ ipcMain.on('admin-authenticate', async (event, { nom_admin, password }) => {
             return;
         }
 
-        event.sender.send('auth-response', { 
-            success: true, 
+        event.sender.send('auth-response', {
+            success: true,
             message: 'Accès autorisé. Redirection...'
         });
         authAttempts.delete(attemptKey);
         accessMode = 'admin';
-        createAndReplaceWindow('index.html'); 
+        createAndReplaceWindow('index.html');
     } catch (error) {
         console.error("Erreur d'authentification administrateur:", error);
-        event.sender.send('auth-response', { 
-            success: false, 
+        event.sender.send('auth-response', {
+            success: false,
             message: 'Connexion impossible. Vérifiez la base de données.'
         });
     }
