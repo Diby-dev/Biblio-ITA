@@ -1,4 +1,4 @@
-const { ipcRenderer } = require('electron');
+const { ipcRenderer } = window.electron;
 
 let initialData = {
     livres: [],
@@ -17,6 +17,16 @@ const statutOptions = [
     { value: 'Retourné', text: 'Retourné' },
     { value: 'En retard', text: 'En retard' }
 ];
+
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>'"]/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+    }[character]));
+}
 
 const displayMessage = (message, type) => {
     messageDiv.className = type;
@@ -129,7 +139,7 @@ const enterEditMode = (id) => {
     
     const dateEmpruntCell = cells[3];
     dateEmpruntCell.dataset.originalValue = emprunt.date_emprunt;
-    dateEmpruntCell.innerHTML = `<input type="date" class="edit-input" name="date_emprunt" value="${emprunt.date_emprunt}">`;
+    dateEmpruntCell.innerHTML = `<input type="date" class="edit-input" name="date_emprunt" value="${escapeHtml(emprunt.date_emprunt)}">`;
 
     const statutCell = cells[4];
     statutCell.dataset.originalValue = emprunt.statut_emprunt;
@@ -137,16 +147,16 @@ const enterEditMode = (id) => {
     
     const dateLimiteCell = cells[5];
     dateLimiteCell.dataset.originalValue = emprunt.date_limite_retour;
-    dateLimiteCell.innerHTML = `<input type="date" class="edit-input" name="date_limite_retour" value="${emprunt.date_limite_retour}">`;
+    dateLimiteCell.innerHTML = `<input type="date" class="edit-input" name="date_limite_retour" value="${escapeHtml(emprunt.date_limite_retour)}">`;
 
     const dateRetourCell = cells[6];
     dateRetourCell.dataset.originalValue = emprunt.date_retour || '';
-    dateRetourCell.innerHTML = `<input type="date" class="edit-input" name="date_retour" value="${emprunt.date_retour || ''}">`;
+    dateRetourCell.innerHTML = `<input type="date" class="edit-input" name="date_retour" value="${escapeHtml(emprunt.date_retour || '')}">`;
 
     const actionCell = cells[7];
     actionCell.innerHTML = `
-        <button class="save-button" data-id="${id}">Sauvegarder</button>
-        <button class="cancel-button" data-id="${id}">Annuler</button>
+        <button class="save-button" data-id="${escapeHtml(id)}">Sauvegarder</button>
+        <button class="cancel-button" data-id="${escapeHtml(id)}">Annuler</button>
     `;
     
     actionCell.querySelector('.save-button').addEventListener('click', (e) => {
@@ -161,10 +171,10 @@ const enterEditMode = (id) => {
 };
 
 const createSelectField = (name, options, selectedValue, valueKey, textKey) => {
-    let selectHtml = `<select class="edit-select" name="${name}">`;
-    options.forEach(option => {
-        const isSelected = (option[valueKey] && option[valueKey].toString() === selectedValue.toString()) ? 'selected' : ''; 
-        selectHtml += `<option value="${option[valueKey]}" ${isSelected}>${option[textKey]}</option>`;
+    let selectHtml = `<select class="edit-select" name="${escapeHtml(name)}">`;
+    (options || []).forEach(option => {
+        const isSelected = (option[valueKey] && option[valueKey].toString() === (selectedValue ?? '').toString()) ? 'selected' : ''; 
+        selectHtml += `<option value="${escapeHtml(option[valueKey])}" ${isSelected}>${escapeHtml(option[textKey])}</option>`;
     });
     selectHtml += '</select>';
     return selectHtml;

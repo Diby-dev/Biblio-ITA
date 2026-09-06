@@ -3,6 +3,16 @@ const { app, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>'"]/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+    }[character]));
+}
+
 function generationpdf(ipcMain, pool) {
     ipcMain.on('generate-emprunt-pdf-single', async (event, id_emprunt) => {
     try {
@@ -210,7 +220,7 @@ function generationpdf(ipcMain, pool) {
         </div>
         
         <div class="doc-title-container">
-            FICHE D'EMPRUNT DE LIVRE N° ${emprunt.id_emprunt}
+            FICHE D'EMPRUNT DE LIVRE N° ${escapeHtml(emprunt.id_emprunt)}
         </div>
 
         <table class="data-table">
@@ -220,31 +230,31 @@ function generationpdf(ipcMain, pool) {
             </tr>
             <tr>
                 <th>Titre du Livre</th>
-                <td><strong>${emprunt.titre_livre || 'N/A'}</strong></td>
+                <td><strong>${escapeHtml(emprunt.titre_livre || 'N/A')}</strong></td>
             </tr>
             <tr>
                 <th>Nom de l'Emprunteur</th>
-                <td><strong>${emprunt.nom_utilisateur_complet || 'N/A'}</strong></td>
+                <td><strong>${escapeHtml(emprunt.nom_utilisateur_complet || 'N/A')}</strong></td>
             </tr>
             <tr>
                 <th>Contact Emprunteur</th>
-                <td>${emprunt.contact_utilisateur || 'N/A'}</td>
+                <td>${escapeHtml(emprunt.contact_utilisateur || 'N/A')}</td>
             </tr>
             <tr>
                 <th>Date d'Emprunt</th>
-                <td>${emprunt.date_emprunt}</td>
+                <td>${escapeHtml(emprunt.date_emprunt)}</td>
             </tr>
             <tr>
                 <th>Date Limite de Retour</th>
-                <td>${emprunt.date_limite_retour}</td>
+                <td>${escapeHtml(emprunt.date_limite_retour)}</td>
             </tr>
             <tr>
                 <th>Date de Retour Effective</th>
-                <td>${emprunt.date_retour || 'En attente de retour'}</td>
+                <td>${escapeHtml(emprunt.date_retour || 'En attente de retour')}</td>
             </tr>
             <tr>
                 <th>Statut Actuel</th>
-                <td><span class="statut-${statutClass}">${emprunt.statut_emprunt}</span></td>
+                <td><span class="statut-${escapeHtml(statutClass)}">${escapeHtml(emprunt.statut_emprunt)}</span></td>
             </tr>
         </table>
 
@@ -263,29 +273,34 @@ function generationpdf(ipcMain, pool) {
     </body>
     </html>
 `;
-        const browser = await puppeteer.launch();
-        const page = await browser.newPage();
-        await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-        
-        const targetDir = path.join(app.getPath('documents'), 'Bibliotech PDF');
-        if (!fs.existsSync(targetDir)) {
-            fs.mkdirSync(targetDir, { recursive: true });
+        let browser;
+        try {
+            browser = await puppeteer.launch({ headless: 'new' });
+            const page = await browser.newPage();
+            await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+            
+            const targetDir = path.join(app.getPath('documents'), 'Bibliotech PDF');
+            if (!fs.existsSync(targetDir)) {
+                fs.mkdirSync(targetDir, { recursive: true });
+            }
+
+            const pdfPath = path.join(targetDir, `fiche_emprunt_${id_emprunt}_${Date.now()}.pdf`);
+
+            await page.pdf({ 
+                path: pdfPath, 
+                format: 'A4',
+                printBackground: true 
+            });
+
+            event.sender.send('generate-emprunt-pdf-response', { 
+                success: true, 
+                path: pdfPath 
+            });
+        } finally {
+            if (browser) {
+                await browser.close().catch(err => console.error("Erreur fermeture navigateur Puppeteer:", err));
+            }
         }
-
-        const pdfPath = path.join(targetDir, `fiche_emprunt_${id_emprunt}_${Date.now()}.pdf`);
-
-        await page.pdf({ 
-            path: pdfPath, 
-            format: 'A4',
-            printBackground: true 
-        });
-
-        await browser.close();
-
-        event.sender.send('generate-emprunt-pdf-response', { 
-            success: true, 
-            path: pdfPath 
-        });
 
     } catch (error) {
         console.error("Erreur lors de la génération du PDF individuel:", error);
@@ -298,7 +313,14 @@ function generationpdf(ipcMain, pool) {
 
 
 ipcMain.on('open-file-in-shell', (event, filePath) => {
-    shell.openPath(filePath)
+    const pdfDirectory = path.resolve(app.getPath('documents'), 'Bibliotech PDF');
+    const requestedPath = path.resolve(filePath || '');
+    const isAuthorizedPdf = requestedPath.startsWith(pdfDirectory + path.sep) && path.extname(requestedPath).toLowerCase() === '.pdf';
+    if (!isAuthorizedPdf) {
+        console.warn('Ouverture de fichier refusée hors du dossier des rapports PDF.');
+        return;
+    }
+    shell.openPath(requestedPath)
         .catch(err => console.error("Erreur lors de l'ouverture du fichier:", err));
 });
 }

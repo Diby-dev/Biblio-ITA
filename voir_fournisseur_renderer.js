@@ -1,4 +1,4 @@
-const { ipcRenderer } = require('electron');
+const { ipcRenderer } = window.electron;
 
 document.addEventListener('DOMContentLoaded', () => {
     const tableBody = document.getElementById('fournisseurs-table-body');
@@ -43,6 +43,16 @@ document.addEventListener('DOMContentLoaded', () => {
         ipcRenderer.send('get-fournisseurs', filters);
     };
 
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>'"]/g, character => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        }[character]));
+    }
+
     function enterEditMode(fournisseurId) {
         if (editModeRowId && editModeRowId !== fournisseurId) {
             messageDiv.className = 'error';
@@ -64,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 originalValue = '';
             }
             
-            cell.innerHTML = `<input type="${field.type}" class="edit-input" name="${field.name}" value="${originalValue}">`;
+            cell.innerHTML = `<input type="${escapeHtml(field.type)}" class="edit-input" name="${escapeHtml(field.name)}" value="${escapeHtml(originalValue)}">`;
         });
 
         const actionCell = cells[5];

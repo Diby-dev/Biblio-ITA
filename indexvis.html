@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: file:;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menu visiteurs</title>
     <style>
@@ -48,7 +49,6 @@
             top: 70px;
             left: 370px;
             position: relative;
-
         }
 
         .slide.active {
@@ -156,7 +156,6 @@
             width: 36px;
             height: 36px;
         }
-      
         
         .welcome-text {
             font-size: 4.5rem;
@@ -188,31 +187,28 @@
             <img src="./assets/livre.png" alt="Logo de la Bibliothèque" class="iconebou2">
             <img src="./assets/auteur.png" alt="Logo de la Bibliothèque" class="iconebou3">
             <div class="menu-container">
-                
-                
                 <button id="btn-livre" class="menu-buttonvi" data-target="voir_livrevis.html">
                     <i></i> Livre
                 </button>
                 <button id="btn-auteur" class="menu-buttonvi" data-target="voir_auteurvis.html">
                     <i></i> Auteur
                 </button>
-                    </div>
+            </div>
         </div>
 
-        <div class="menu-group">
-            <div class="menu-group-header"></div>
+        <div class="menu-group" style="margin-top: 15px;">
             <div class="menu-container">
-                <button id="btn-rapport-pdf" class="menu-buttonvi" data-target="rapport_pdf.html">
-                    <i></i>
+                <button id="btn-quitter-visite" class="menu-buttonvi" data-target="login.html" style="color: #ffcccc;">
+                    <i>🚪</i> Quitter la visite
                 </button>
             </div>
         </div>
     </div>
    
-     <img src="./assets/ITA.png" alt="Logo de la Bibliothèque" class="logo-accueil">
+    <img src="./assets/ITA.png" alt="Logo de la Bibliothèque" class="logo-accueil">
     <div class="main-content">
-    <div class="welcome-text">BIENVENUE</div>
-</div>
+        <div class="welcome-text">BIENVENUE</div>
+    </div>
    
     <script src="renderervis.js"></script>
 </body>

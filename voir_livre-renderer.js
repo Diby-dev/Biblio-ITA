@@ -1,4 +1,4 @@
-const { ipcRenderer } = require('electron');
+const { ipcRenderer } = window.electron;
 
 document.addEventListener('DOMContentLoaded', () => {
     const tableBody = document.getElementById('livres-table-body');
@@ -9,6 +9,16 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let editModeRowId = null; 
     let initialData = { auteurs: [], fournisseurs: [] };
+
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>'"]/g, character => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        }[character]));
+    }
 
     const editableFields = [
         { index: 2, name: 'titre_livre', type: 'text' },
@@ -67,30 +77,30 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (field.type === 'text') {
                 const originalValue = cell.textContent.trim();
-                cell.innerHTML = `<input type="text" class="edit-input" name="${field.name}" value="${originalValue}">`;
+                cell.innerHTML = `<input type="text" class="edit-input" name="${escapeHtml(field.name)}" value="${escapeHtml(originalValue)}">`;
             
             } else if (field.type === 'number') {
                 const originalValue = cell.textContent.trim();
-                cell.innerHTML = `<input type="number" min="0" step="1" class="edit-input" name="${field.name}" value="${originalValue}">`;
+                cell.innerHTML = `<input type="number" min="0" step="1" class="edit-input" name="${escapeHtml(field.name)}" value="${escapeHtml(originalValue)}">`;
 
             } else if (field.type === 'select' && field.options) {
                 const currentValue = cell.textContent.trim();
                 let optionsHTML = field.options.map(opt => 
-                    `<option value="${opt}" ${opt === currentValue ? 'selected' : ''}>${opt}</option>`
+                    `<option value="${escapeHtml(opt)}" ${opt === currentValue ? 'selected' : ''}>${escapeHtml(opt)}</option>`
                 ).join('');
-                cell.innerHTML = `<select class="edit-select" name="${field.name}">${optionsHTML}</select>`;
+                cell.innerHTML = `<select class="edit-select" name="${escapeHtml(field.name)}">${optionsHTML}</select>`;
             
             } else if (field.type === 'select' && field.dataKey) {
-                const dataList = initialData[field.dataKey];
+                const dataList = initialData[field.dataKey] || [];
                 
                 const currentId = currentData[field.idKey] || ''; 
                 
                 let optionsHTML = `<option value="">-- Non spécifié --</option>`;
                 
                 optionsHTML += dataList.map(item => 
-                    `<option value="${item[field.idKey]}" ${item[field.idKey] == currentId ? 'selected' : ''}>${item[field.textKey]}</option>`
+                    `<option value="${escapeHtml(item[field.idKey])}" ${item[field.idKey] == currentId ? 'selected' : ''}>${escapeHtml(item[field.textKey])}</option>`
                 ).join('');
-                cell.innerHTML = `<select class="edit-select" name="${field.name}">${optionsHTML}</select>`;
+                cell.innerHTML = `<select class="edit-select" name="${escapeHtml(field.name)}">${optionsHTML}</select>`;
             }
         });
 

@@ -1,4 +1,4 @@
-const { ipcRenderer } = require('electron');
+const { ipcRenderer } = window.electron;
 
 document.addEventListener('DOMContentLoaded', () => {
     const tableBody = document.getElementById('auteurs-table-body');
@@ -43,6 +43,16 @@ document.addEventListener('DOMContentLoaded', () => {
         ipcRenderer.send('get-auteurs', filters);
     };
 
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>'"]/g, character => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        }[character]));
+    }
+
     function enterEditMode(auteurId) {
         if (editModeRowId && editModeRowId !== auteurId) {
             messageDiv.className = 'error';
@@ -65,10 +75,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             if (field.type === 'text') {
-                cell.innerHTML = `<input type="text" class="edit-input" name="${field.name}" value="${originalValue}">`;
+                cell.innerHTML = `<input type="text" class="edit-input" name="${escapeHtml(field.name)}" value="${escapeHtml(originalValue)}">`;
             } else if (field.type === 'date') {
 
-                cell.innerHTML = `<input type="date" class="edit-input" name="${field.name}" value="${originalValue}">`;
+                cell.innerHTML = `<input type="date" class="edit-input" name="${escapeHtml(field.name)}" value="${escapeHtml(originalValue)}">`;
             }
         });
 

@@ -1,4 +1,4 @@
-const { ipcRenderer } = require('electron');
+const { ipcRenderer } = window.electron;
 
 document.addEventListener('DOMContentLoaded', () => {    
     const buttons = document.querySelectorAll('.menu-button');

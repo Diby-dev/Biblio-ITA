@@ -1,4 +1,4 @@
-const { ipcRenderer } = require('electron');
+const { ipcRenderer } = window.electron;
 
 document.addEventListener('DOMContentLoaded', () => {
     const tableBody = document.getElementById('livres-table-body');

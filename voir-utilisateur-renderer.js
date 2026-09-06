@@ -1,4 +1,4 @@
-const { ipcRenderer } = require('electron');
+const { ipcRenderer } = window.electron;
 
 document.addEventListener('DOMContentLoaded', () => {
     const tableBody = document.getElementById('user-table-body');
@@ -68,10 +68,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>'"]/g, character => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        }[character]));
+    }
+
     function enterEditMode(userId) {
         if (editModeRowId && editModeRowId !== userId) {
             messageDiv.className = 'error';
-            messageDiv.textContent = 'Veuillez sauvegarder ou annuler la modification en cours.';
+            messageDiv.textContent = 'Veuillez sauvegarder ou annuler la modification en cours sur l\'autre ligne.';
             return;
         }
         
@@ -88,13 +98,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const originalValue = cell.textContent.trim(); 
             
             if (field.type === 'text') {
-                cell.innerHTML = `<input type="text" class="edit-input" name="${field.name}" value="${originalValue}">`;
+                cell.innerHTML = `<input type="text" class="edit-input" name="${escapeHtml(field.name)}" value="${escapeHtml(originalValue)}">`;
             } else if (field.type === 'select') {
                 let optionsHtml = field.options.map(option => 
-                    `<option value="${option}" ${option === originalValue ? 'selected' : ''}>${option}</option>`
+                    `<option value="${escapeHtml(option)}" ${option === originalValue ? 'selected' : ''}>${escapeHtml(option)}</option>`
                 ).join('');
                 cell.innerHTML = `
-                    <select class="edit-select" name="${field.name}">
+                    <select class="edit-select" name="${escapeHtml(field.name)}">
                         ${optionsHtml}
                     </select>
                 `;

@@ -43,6 +43,13 @@ const dbConfig = {
 let pool; 
 const openWindows = new Set();
 let currentActiveWindow = null; 
+let accessMode = 'none';
+const authAttempts = new Map();
+const AUTH_WINDOW_MS = 60 * 1000;
+const MAX_AUTH_ATTEMPTS = 5;
+
+const ADMIN_WINDOWS = new Set(['index.html', 'dash.html', 'utilisateur.html', 'voir_utilisateur.html', 'livre.html', 'voir_livre.html', 'auteur.html', 'voir_auteur.html', 'fournisseur.html', 'voir_fournisseur.html', 'emprunt.html', 'voir_emprunt.html']);
+const VISITOR_WINDOWS = new Set(['indexvis.html', 'voir_livrevis.html', 'voir_auteurvis.html']);
 
 
 
@@ -63,6 +70,44 @@ async function migrateDatabase(pool) {
     }
 }
 
+function createAdminOnlyIpc(ipc) {
+    return {
+        on(channel, listener) {
+            ipc.on(channel, (event, ...args) => {
+                if (accessMode !== 'admin') {
+                    console.warn(`Tentative d'accès non autorisée au canal admin : ${channel}`);
+                    const responseChannel = `${channel}-response`;
+                    event.sender.send(responseChannel, {
+                        success: false,
+                        message: "Accès refusé : privilèges administrateur requis."
+                    });
+                    return;
+                }
+                return listener(event, ...args);
+            });
+        }
+    };
+}
+
+function createSharedIpc(ipc) {
+    return {
+        on(channel, listener) {
+            ipc.on(channel, (event, ...args) => {
+                if (accessMode !== 'admin' && accessMode !== 'visitor') {
+                    console.warn(`Tentative d'accès non autorisée au canal partagé : ${channel}`);
+                    const responseChannel = `${channel}-response`;
+                    event.sender.send(responseChannel, {
+                        success: false,
+                        message: "Accès refusé : session non authentifiée."
+                    });
+                    return;
+                }
+                return listener(event, ...args);
+            });
+        }
+    };
+}
+
 function initializeDatabasePool() {
     try {
         pool = mysql.createPool(dbConfig);
@@ -70,28 +115,31 @@ function initializeDatabasePool() {
         
         migrateDatabase(pool);
 
-        ajoutuser(ipcMain, pool);
-        modifuser(ipcMain, pool);
-        montreuser(ipcMain, pool);
-        ajoutauteur(ipcMain, pool);
-        modifauteur(ipcMain, pool);
-        montreauteur(ipcMain, pool);
-        ajoutfournisseur(ipcMain, pool);
-        modiffournisseur(ipcMain, pool);
-        montrefournisseur(ipcMain, pool);
-        dependancelivre(ipcMain, pool);
-        ajoutlivre(ipcMain, pool);
-        montrelivre(ipcMain, pool);
-        dependancelivre2(ipcMain, pool);
-        modiflivre(ipcMain, pool);
-        dependanceemprunt(ipcMain, pool);
-        ajoutemprunt(ipcMain, pool);
-        montreemprunt(ipcMain, pool);
-        dependanceemprunt2(ipcMain, pool);
-        modifemprunt(ipcMain, pool);
-        dashboard(ipcMain, pool);
-        admin(ipcMain, pool);
-        generationpdf(ipcMain, pool);
+        const adminIpc = createAdminOnlyIpc(ipcMain);
+        const sharedIpc = createSharedIpc(ipcMain);
+
+        ajoutuser(adminIpc, pool);
+        modifuser(adminIpc, pool);
+        montreuser(adminIpc, pool);
+        ajoutauteur(adminIpc, pool);
+        modifauteur(adminIpc, pool);
+        montreauteur(sharedIpc, pool);
+        ajoutfournisseur(adminIpc, pool);
+        modiffournisseur(adminIpc, pool);
+        montrefournisseur(adminIpc, pool);
+        dependancelivre(adminIpc, pool);
+        ajoutlivre(adminIpc, pool);
+        montrelivre(sharedIpc, pool);
+        dependancelivre2(adminIpc, pool);
+        modiflivre(adminIpc, pool);
+        dependanceemprunt(adminIpc, pool);
+        ajoutemprunt(adminIpc, pool);
+        montreemprunt(adminIpc, pool);
+        dependanceemprunt2(adminIpc, pool);
+        modifemprunt(adminIpc, pool);
+        dashboard(adminIpc, pool);
+        admin(adminIpc, pool);
+        generationpdf(adminIpc, pool);
 
     } catch (err) {
         console.error('ERREUR: Impossible de créer une connexion à MySQL:', err);
@@ -113,13 +161,17 @@ function createAndReplaceWindow(targetFile) {
         title: targetFile.replace('.html', '').toUpperCase(),
         autoHideMenuBar: true,
         webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false
+            preload: path.join(__dirname, 'preload.js'),
+            nodeIntegration: false,
+            contextIsolation: true,
+            sandbox: true
         }
     };
 
     const newWindow = new BrowserWindow(windowOptions);
     newWindow.loadFile(path.join(__dirname, targetFile));
+    newWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+    newWindow.webContents.on('will-navigate', (event) => event.preventDefault());
     currentActiveWindow = newWindow;
     newWindow.on('closed', () => {
    
@@ -146,7 +198,19 @@ app.on('window-all-closed', () => {
 });
 
 ipcMain.on('open-window', (event, targetFile) => {
-    console.log(`ouverture de la fenêtre : ${targetFile}`);
+    if (targetFile === 'login.html') {
+        accessMode = 'none';
+        createAndReplaceWindow('login.html');
+        return;
+    }
+
+    const isAdminWindow = ADMIN_WINDOWS.has(targetFile);
+    const isVisitorWindow = VISITOR_WINDOWS.has(targetFile);
+    const isAllowed = (accessMode === 'admin' && isAdminWindow) || (accessMode === 'visitor' && isVisitorWindow);
+    if (!isAllowed) {
+        console.warn(`Navigation refusée vers : ${targetFile}`);
+        return;
+    }
     createAndReplaceWindow(targetFile);
 });
 
@@ -160,6 +224,7 @@ ipcMain.on('open-window', (event, targetFile) => {
 
 ipcMain.on('guest-access', (event) => {
     console.log("Processus principal a reçu la demande d'accès visiteur.");
+    accessMode = 'visitor';
     createAndReplaceWindow('indexvis.html');
 });
 
@@ -167,8 +232,23 @@ ipcMain.on('admin-authenticate', async (event, { nom_admin, password }) => {
     console.log(`Tentative de connexion...`);
 
     const nomAdmin = (nom_admin || '').trim();
+    const attemptKey = event.sender.id;
+    const previousAttempt = authAttempts.get(attemptKey);
+    const now = Date.now();
+    const attempt = previousAttempt && now - previousAttempt.firstAttempt < AUTH_WINDOW_MS
+        ? previousAttempt
+        : { count: 0, firstAttempt: now };
+
+    if (attempt.count >= MAX_AUTH_ATTEMPTS) {
+        const remainingSeconds = Math.ceil((AUTH_WINDOW_MS - (now - attempt.firstAttempt)) / 1000);
+        event.sender.send('auth-response', { success: false, message: `Trop de tentatives. Réessayez dans ${remainingSeconds} secondes.` });
+        return;
+    }
+
     try {
         if (!nomAdmin || !password) {
+            attempt.count += 1;
+            authAttempts.set(attemptKey, attempt);
             event.sender.send('auth-response', { success: false, message: 'Le nom et le mot de passe sont obligatoires.' });
             return;
         }
@@ -180,6 +260,8 @@ ipcMain.on('admin-authenticate', async (event, { nom_admin, password }) => {
         const passwordIsValid = adminAccount && await bcrypt.compare(password, adminAccount.mot_de_passe_admin);
 
         if (!passwordIsValid) {
+            attempt.count += 1;
+            authAttempts.set(attemptKey, attempt);
             event.sender.send('auth-response', { success: false, message: 'Nom, mot de passe incorrect ou compte bloqué.' });
             return;
         }
@@ -188,6 +270,8 @@ ipcMain.on('admin-authenticate', async (event, { nom_admin, password }) => {
             success: true, 
             message: 'Accès autorisé. Redirection...'
         });
+        authAttempts.delete(attemptKey);
+        accessMode = 'admin';
         createAndReplaceWindow('index.html'); 
     } catch (error) {
         console.error("Erreur d'authentification administrateur:", error);
