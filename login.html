@@ -31,13 +31,14 @@
             font-size: 1.8em;
             font-weight: 600;
         }
-             .logo-accueil{
+
+        .logo-accueil{
             width: 170px;
             height: 140px;
             top: -3px;
             left: 596px;
             position: absolute;
-
+            padding-top: 30px;
         }
 
         .login-box label {
@@ -49,7 +50,7 @@
             font-size: 0.95em;
         }
 
-        .login-box input[type="password"] {
+        .login-box input[type="text"], .login-box input[type="password"] {
             width: 100%;
             padding: 12px;
             margin-bottom: 20px;
@@ -60,7 +61,7 @@
             transition: border-color 0.3s, box-shadow 0.3s;
         }
 
-        .login-box input[type="password"]:focus {
+        .login-box input[type="text"]:focus, .login-box input[type="password"]:focus {
             border-color: #3498db;
             box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
             outline: none;
@@ -111,9 +112,11 @@
     <div class="login-box">
         <h2>CONNEXION</h2>
         <form id="login-form">
-    <label for="password">Mot de Passe Secret :</label>
-    <input type="password" id="password" placeholder="Entrez le mot de passe si vous êtes un bibliothecaire" required>
-    <button type="submit" class="butad">Déverrouiller et Accéder à l'espace de gestion</button>
+    <label for="nom-admin">Nom d'utilisateur administrateur :</label>
+    <input type="text" id="nom-admin" placeholder="Votre nom administrateur" required autocomplete="username">
+    <label for="password">Mot de passe :</label>
+    <input type="password" id="password" placeholder="Votre mot de passe" required autocomplete="current-password">
+    <button type="submit" class="butad">Se connecter à l'espace de gestion</button>
     <button type="button" id="btn-acces-visiteur" class="butvi">Accès visiteur</button>
     
     <div id="message"></div>
