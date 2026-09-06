@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const mysql = require('mysql2/promise');
+const bcrypt = require('bcrypt');
 const puppeteer = require('puppeteer');
 const fs = require('fs'); 
 
@@ -26,9 +27,8 @@ const { dependanceemprunt2 } = require('./fonctions/dependanceemprunt2');
 const { modifemprunt } = require('./fonctions/modifemprunt');
 const { dashboard } = require('./fonctions/dashboard');
 const { generationpdf } = require('./fonctions/generationpdf');
+const { admin } = require('./fonctions/admin');
 
-
-const ADMIN_SECRET_PASSWORD = 'ITAyopADM';
 
 const dbConfig = {
     host: 'localhost',
@@ -90,6 +90,7 @@ function initializeDatabasePool() {
         dependanceemprunt2(ipcMain, pool);
         modifemprunt(ipcMain, pool);
         dashboard(ipcMain, pool);
+        admin(ipcMain, pool);
         generationpdf(ipcMain, pool);
 
     } catch (err) {
@@ -162,21 +163,37 @@ ipcMain.on('guest-access', (event) => {
     createAndReplaceWindow('indexvis.html');
 });
 
-ipcMain.on('admin-authenticate', async (event, { password }) => { 
+ipcMain.on('admin-authenticate', async (event, { nom_admin, password }) => {
     console.log(`Tentative de connexion...`);
-    
-    if (password === ADMIN_SECRET_PASSWORD) {
+
+    const nomAdmin = (nom_admin || '').trim();
+    try {
+        if (!nomAdmin || !password) {
+            event.sender.send('auth-response', { success: false, message: 'Le nom et le mot de passe sont obligatoires.' });
+            return;
+        }
+
+        const [[adminAccount]] = await pool.execute(
+            "SELECT mot_de_passe_admin FROM admin WHERE nom_admin = ? AND statut_admin = 'actif' LIMIT 1",
+            [nomAdmin]
+        );
+        const passwordIsValid = adminAccount && await bcrypt.compare(password, adminAccount.mot_de_passe_admin);
+
+        if (!passwordIsValid) {
+            event.sender.send('auth-response', { success: false, message: 'Nom, mot de passe incorrect ou compte bloqué.' });
+            return;
+        }
+
         event.sender.send('auth-response', { 
             success: true, 
             message: 'Accès autorisé. Redirection...'
         });
-        
         createAndReplaceWindow('index.html'); 
-        
-    } else {
+    } catch (error) {
+        console.error("Erreur d'authentification administrateur:", error);
         event.sender.send('auth-response', { 
             success: false, 
-            message: 'Mot de passe incorrect.' 
+            message: 'Connexion impossible. Vérifiez la base de données.'
         });
     }
 });

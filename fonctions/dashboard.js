@@ -17,7 +17,8 @@ function dashboard(ipcMain, pool) {
                 [utilisateursInscrits],
                 [utilisateursDesabonnes],
                 [fournisseursTotal],
-                [auteursTotal]
+                [auteursTotal],
+                [adminsTotal]
             ] = await Promise.all([
                 pool.execute('SELECT COUNT(*) AS total FROM livre;'),
                 pool.execute("SELECT COUNT(*) AS total FROM livre WHERE statut_livre = 'emprunté';"),
@@ -30,7 +31,8 @@ function dashboard(ipcMain, pool) {
                 pool.execute("SELECT COUNT(*) AS total FROM utilisateur WHERE statut_utilisateur = 'inscrit';"),
                 pool.execute("SELECT COUNT(*) AS total FROM utilisateur WHERE statut_utilisateur = 'désabonné';"),
                 pool.execute('SELECT COUNT(*) AS total FROM fournisseur;'),
-                pool.execute('SELECT COUNT(*) AS total FROM auteur;')
+                pool.execute('SELECT COUNT(*) AS total FROM auteur;'),
+                pool.execute('SELECT COUNT(*) AS total FROM admin;')
             ]);
     
             event.sender.send('get-dashboard-stats-response', {
@@ -47,7 +49,8 @@ function dashboard(ipcMain, pool) {
                     utilisateursInscrits: utilisateursInscrits[0].total,
                     utilisateursDesabonnes: utilisateursDesabonnes[0].total,
                     countFournisseurs: fournisseursTotal[0].total,
-                    countAuteurs: auteursTotal[0].total
+                    countAuteurs: auteursTotal[0].total,
+                    countAdmins: adminsTotal[0].total
                 }
             });
     
