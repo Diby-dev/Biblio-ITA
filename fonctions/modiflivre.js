@@ -1,4 +1,5 @@
 const { enregistrerImageLivre } = require('./imageLivre');
+const { enregistrerHistorique } = require('./historique');
 
 function modiflivre(ipcMain, pool) {
     ipcMain.on('update-livre', async (event, livreData) => {
@@ -56,6 +57,7 @@ function modiflivre(ipcMain, pool) {
             const sql = `UPDATE livre SET ${champs.join(', ')} WHERE id_livre = ?`;
     
             const [result] = await pool.execute(sql, values);
+            await enregistrerHistorique(pool, 'Livre modifié', `« ${titre_livre} »`);
             
             event.sender.send('update-livre-response', { 
                 success: true, 

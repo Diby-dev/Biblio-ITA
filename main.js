@@ -28,20 +28,18 @@ const { modifemprunt } = require('./fonctions/modifemprunt');
 const { dashboard } = require('./fonctions/dashboard');
 const { generationpdf } = require('./fonctions/generationpdf');
 const { admin } = require('./fonctions/admin');
+const { historique } = require('./fonctions/historique');
 
 
 const dbConfig = {
-    host: 'mysql-40cfbf8-dibyjeanyves02-aa9d.c.aivencloud.com',
-    port: 12247,
-    user: 'avnadmin',
-    password: 'AVNS_1Ve-VNz6Cc0MGlEF5ZS',
+    host: 'localhost',
+    port: 3306,
+    user: 'root', 
+    password: '', 
     database: 'bibliotheque',
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0,
-    ssl: {
-        rejectUnauthorized: false
-    }
+    queueLimit: 0
 };
 
 let pool;
@@ -112,12 +110,12 @@ function createSharedIpc(ipc) {
     };
 }
 
-function initializeDatabasePool() {
+async function initializeDatabasePool() {
     try {
         pool = mysql.createPool(dbConfig);
         console.log('connexion à MySQL créé avec succès.');
 
-        migrateDatabase(pool);
+        await migrateDatabase(pool);
 
         const adminIpc = createAdminOnlyIpc(ipcMain);
         const sharedIpc = createSharedIpc(ipcMain);
@@ -143,6 +141,7 @@ function initializeDatabasePool() {
         modifemprunt(adminIpc, pool);
         dashboard(adminIpc, pool);
         admin(adminIpc, pool);
+        historique(adminIpc, pool);
         generationpdf(adminIpc, pool);
 
     } catch (err) {
@@ -185,8 +184,8 @@ function createAndReplaceWindow(targetFile) {
     });
 }
 
-app.whenReady().then(() => {
-    initializeDatabasePool();
+app.whenReady().then(async () => {
+    await initializeDatabasePool();
     createAndReplaceWindow('login.html');
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {

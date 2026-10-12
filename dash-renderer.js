@@ -5,8 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminForm = document.getElementById('admin-form');
     const adminMessage = document.getElementById('admin-message');
     const adminsTableBody = document.getElementById('admins-table-body');
+    const historyList = document.getElementById('history-list');
+    const clearHistoryButton = document.getElementById('clear-history');
 
     const loadAdmins = () => ipcRenderer.send('get-admins');
+    const loadHistory = () => ipcRenderer.send('get-history');
 
     ipcRenderer.send('get-dashboard-stats');
 
@@ -62,6 +65,43 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    ipcRenderer.on('get-history-response', (event, response) => {
+        if (!response.success) {
+            historyList.innerHTML = '<div class="history-empty">Impossible de charger l’historique.</div>';
+            return;
+        }
+        historyList.innerHTML = '';
+        if (response.entries.length === 0) {
+            historyList.innerHTML = '<div class="history-empty">Aucune action enregistrée pour le moment.</div>';
+            return;
+        }
+        response.entries.forEach(entry => {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            const content = document.createElement('div');
+            const action = document.createElement('div');
+            action.className = 'history-action';
+            action.textContent = entry.action;
+            content.appendChild(action);
+            if (entry.details) {
+                const details = document.createElement('div');
+                details.className = 'history-details';
+                details.textContent = entry.details;
+                content.appendChild(details);
+            }
+            const date = document.createElement('div');
+            date.className = 'history-date';
+            date.textContent = `${entry.date} · ${entry.heure}`;
+            item.append(content, date);
+            historyList.appendChild(item);
+        });
+    });
+
+    ipcRenderer.on('clear-history-response', (event, response) => {
+        if (response.success) loadHistory();
+        else alert(`Impossible d’effacer l’historique : ${response.message}`);
+    });
+
     adminForm.addEventListener('submit', (event) => {
         event.preventDefault();
         adminMessage.textContent = 'Création en cours...';
@@ -88,6 +128,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     loadAdmins();
+    loadHistory();
+
+    clearHistoryButton.addEventListener('click', () => {
+        if (confirm('Voulez-vous vraiment effacer tout l’historique ? Cette action est irréversible.')) {
+            ipcRenderer.send('clear-history');
+        }
+    });
 
     if (backButton) {
         backButton.addEventListener('click', () => {

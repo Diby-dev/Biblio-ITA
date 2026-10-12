@@ -1,3 +1,5 @@
+const { enregistrerHistorique } = require('./historique');
+
 function modifuser(ipcMain, pool) {
     ipcMain.on('update-user', async (event, userData) => {
         console.log('Tentative de mise à jour de l\'utilisateur:', userData);
@@ -50,6 +52,7 @@ function modifuser(ipcMain, pool) {
             if (!pool) throw new Error("La connexion à la base de données n'est pas initialisée.");
     
             const [result] = await pool.execute(sql, values);
+            await enregistrerHistorique(pool, 'Utilisateur modifié', `${prenom_utilisateur} ${nom_utilisateur}`);
             
             if (result.affectedRows === 0) {
                 event.sender.send('update-user-response', { 

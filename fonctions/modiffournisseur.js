@@ -1,3 +1,5 @@
+const { enregistrerHistorique } = require('./historique');
+
 function modiffournisseur(ipcMain, pool) {
     ipcMain.on('update-fournisseur', async (event, fournisseurData) => {
         console.log('Tentative de mise à jour du fournisseur:', fournisseurData);
@@ -41,6 +43,7 @@ function modiffournisseur(ipcMain, pool) {
             if (!pool) throw new Error("La connexion à la base de données n'est pas initialisée.");
     
             const [result] = await pool.execute(sql, values);
+            await enregistrerHistorique(pool, 'Fournisseur modifié', nom_fournisseur);
             
             event.sender.send('update-fournisseur-response', { 
                 success: true, 

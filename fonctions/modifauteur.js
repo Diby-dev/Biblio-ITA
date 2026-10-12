@@ -1,3 +1,5 @@
+const { enregistrerHistorique } = require('./historique');
+
 function modifauteur(ipcMain, pool) {
     ipcMain.on('update-auteur', async (event, auteurData) => {
         console.log('Tentative de mise à jour de l\'auteur:', auteurData);
@@ -41,6 +43,7 @@ function modifauteur(ipcMain, pool) {
             if (!pool) throw new Error("La connexion à la base de données n'est pas initialisée.");
     
             const [result] = await pool.execute(sql, values);
+            await enregistrerHistorique(pool, 'Auteur modifié', `${prenom_auteur} ${nom_auteur}`);
             
             event.sender.send('update-auteur-response', { 
                 success: true, 

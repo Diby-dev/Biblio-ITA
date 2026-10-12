@@ -1,3 +1,5 @@
+const { enregistrerHistorique } = require('./historique');
+
 function ajoutuser(ipcMain, pool) {
 ipcMain.on('add-user', async (event, userData) => {
     console.log('Tentative d\'enregistrement d\'un utilisateur:', userData);
@@ -22,6 +24,7 @@ ipcMain.on('add-user', async (event, userData) => {
         if (!pool) throw new Error("La connexion à la base de données n'est pas initialisée.");
 
         const [result] = await pool.execute(sql, values);
+        await enregistrerHistorique(pool, 'Utilisateur ajouté', `${userData.prenom_utilisateur} ${userData.nom_utilisateur}`);
         
         event.sender.send('add-user-response', { 
             success: true, 

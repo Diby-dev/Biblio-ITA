@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const { enregistrerHistorique } = require('./historique');
 
 function admin(ipcMain, pool) {
     ipcMain.on('get-admins', async (event) => {
@@ -37,6 +38,7 @@ function admin(ipcMain, pool) {
                 "INSERT INTO admin (nom_admin, mot_de_passe_admin, statut_admin) VALUES (?, ?, 'actif')",
                 [nomAdmin, passwordHash]
             );
+            await enregistrerHistorique(pool, 'Administrateur ajouté', nomAdmin);
             event.sender.send('add-admin-response', { success: true, id: result.insertId });
         } catch (error) {
             event.sender.send('add-admin-response', { success: false, message: error.message });
@@ -53,6 +55,7 @@ function admin(ipcMain, pool) {
 
             const nouveauStatut = currentAdmin.statut_admin === 'actif' ? 'bloqué' : 'actif';
             await pool.execute('UPDATE admin SET statut_admin = ? WHERE id_admin = ?', [nouveauStatut, idAdmin]);
+            await enregistrerHistorique(pool, 'Statut administrateur modifié', `Administrateur #${idAdmin} : ${nouveauStatut}`);
             event.sender.send('toggle-admin-status-response', { success: true, id: idAdmin, statut: nouveauStatut });
         } catch (error) {
             event.sender.send('toggle-admin-status-response', { success: false, message: error.message });

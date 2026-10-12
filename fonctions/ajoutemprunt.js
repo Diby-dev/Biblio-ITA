@@ -1,3 +1,5 @@
+const { enregistrerHistorique } = require('./historique');
+
 function ajoutemprunt(ipcMain, pool) {
     ipcMain.on('add-emprunt', async (event, empruntData) => {
         console.log('Tentative d\'enregistrement d\'un emprunt:', empruntData);
@@ -21,6 +23,7 @@ function ajoutemprunt(ipcMain, pool) {
             if (!pool) throw new Error("La connexion à la base de données n'est pas initialisée.");
     
             const [result] = await pool.execute(insertSql, insertValues);
+            await enregistrerHistorique(pool, 'Emprunt enregistré', `Livre #${empruntData.id_livre} — utilisateur #${empruntData.id_utilisateur}`);
             
             const statutEmprunt = empruntData.statut_emprunt.toLowerCase();
             let nouveauStatutLivre = null;

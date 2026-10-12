@@ -2,6 +2,7 @@ const puppeteer = require('puppeteer');
 const { app, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { enregistrerHistorique } = require('./historique');
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>'"]/g, character => ({
@@ -291,6 +292,8 @@ function generationpdf(ipcMain, pool) {
                 format: 'A4',
                 printBackground: true 
             });
+
+            await enregistrerHistorique(pool, 'Rapport PDF généré', `Fiche d'emprunt #${id_emprunt}`);
 
             event.sender.send('generate-emprunt-pdf-response', { 
                 success: true, 

@@ -135,6 +135,51 @@
             font-size: 14px;
             color: #cbd5e1;
         }
+
+        .history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 14px;
+        }
+
+        .history-header .titre-box { margin-bottom: 0; }
+
+        .history-clear {
+            background: transparent;
+            border: 1px solid #a95b64;
+            border-radius: 5px;
+            color: #ffabb4;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 8px 12px;
+        }
+
+        .history-clear:hover { background: #6b3039; color: #fff; }
+
+        .history-list {
+            max-height: 330px;
+            overflow-y: auto;
+            border: 1px solid #3b4355;
+            border-radius: 7px;
+            background: rgba(16, 20, 29, .55);
+        }
+
+        .history-item {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: center;
+            padding: 13px 16px;
+            border-bottom: 1px solid #30394b;
+        }
+
+        .history-item:last-child { border-bottom: 0; }
+        .history-action { color: #f4f7fb; font-weight: bold; font-size: 15px; }
+        .history-details { color: #9eacc2; margin-top: 4px; font-size: 13px; }
+        .history-date { color: #cbd5e1; font-size: 13px; text-align: right; white-space: nowrap; }
+        .history-empty { color: #9eacc2; padding: 28px; text-align: center; }
         
     </style>
 </head>
@@ -204,6 +249,16 @@
                     <thead><tr><th>Nom</th><th>Statut</th><th>Action</th></tr></thead>
                     <tbody id="admins-table-body"><tr><td colspan="3">Chargement...</td></tr></tbody>
                 </table>
+            </div>
+        </div>
+
+        <div class="ligne-box">
+            <div class="history-header">
+                <div class="titre-box">Historique des actions</div>
+                <button type="button" id="clear-history" class="history-clear">Effacer l'historique</button>
+            </div>
+            <div id="history-list" class="history-list" aria-live="polite">
+                <div class="history-empty">Chargement de l'historique...</div>
             </div>
         </div>
 

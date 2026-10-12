@@ -1,4 +1,5 @@
 const { enregistrerImageLivre } = require('./imageLivre');
+const { enregistrerHistorique } = require('./historique');
 
 function ajoutlivre(ipcMain, pool) {
     ipcMain.on('add-livre', async (event, livreData, imageSourcePath) => {
@@ -29,6 +30,7 @@ function ajoutlivre(ipcMain, pool) {
             values.push(imageLivre);
     
             const [result] = await pool.execute(sql, values);
+            await enregistrerHistorique(pool, 'Livre ajouté', `« ${livreData.titre_livre} »`);
             
             event.sender.send('add-livre-response', { 
                 success: true, 

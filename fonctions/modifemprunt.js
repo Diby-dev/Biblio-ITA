@@ -1,3 +1,5 @@
+const { enregistrerHistorique } = require('./historique');
+
 function modifemprunt(ipcMain, pool) {
     ipcMain.on('update-emprunt', async (event, data) => {
         try {
@@ -32,6 +34,7 @@ function modifemprunt(ipcMain, pool) {
             ];
     
             await pool.execute(updateEmpruntSql, updateEmpruntValues);
+            await enregistrerHistorique(pool, 'Emprunt modifié', `Emprunt #${id_emprunt} — ${statut_emprunt}`);
 
             const oldStatut = oldEmprunt ? oldEmprunt.statut_emprunt.toLowerCase() : '';
             const newStatut = statut_emprunt.toLowerCase();

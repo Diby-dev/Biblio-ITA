@@ -3,7 +3,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 const channelsByPage = {
     'login.html': ['admin-authenticate', 'auth-response', 'guest-access'],
     'index.html': ['open-window'],
-    'dash.html': ['open-window', 'get-dashboard-stats', 'get-dashboard-stats-response', 'get-admins', 'get-admins-response', 'add-admin', 'add-admin-response', 'toggle-admin-status', 'toggle-admin-status-response'],
+    'dash.html': ['open-window', 'get-dashboard-stats', 'get-dashboard-stats-response', 'get-admins', 'get-admins-response', 'add-admin', 'add-admin-response', 'toggle-admin-status', 'toggle-admin-status-response', 'get-history', 'get-history-response', 'clear-history', 'clear-history-response'],
     'utilisateur.html': ['open-window', 'add-user', 'add-user-response'],
     'voir_utilisateur.html': ['open-window', 'get-users', 'get-users-response', 'update-user', 'update-user-response'],
     'livre.html': ['open-window', 'add-livre', 'add-livre-response', 'get-livre-dependencies-for-add', 'get-livre-dependencies-for-add-response'],

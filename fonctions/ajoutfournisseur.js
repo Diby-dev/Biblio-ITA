@@ -1,3 +1,5 @@
+const { enregistrerHistorique } = require('./historique');
+
 function ajoutfournisseur(ipcMain, pool) {
     ipcMain.on('add-fournisseur', async (event, fournisseurData) => {
         console.log('Tentative d\'enregistrement d\'un fournisseur:', fournisseurData);
@@ -19,6 +21,7 @@ function ajoutfournisseur(ipcMain, pool) {
             if (!pool) throw new Error("La connexion à la base de données n'est pas initialisée.");
     
             const [result] = await pool.execute(sql, values);
+            await enregistrerHistorique(pool, 'Fournisseur ajouté', fournisseurData.nom_fournisseur);
             
             event.sender.send('add-fournisseur-response', { 
                 success: true, 

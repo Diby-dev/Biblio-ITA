@@ -1,3 +1,5 @@
+const { enregistrerHistorique } = require('./historique');
+
 function ajoutauteur(ipcMain, pool) {
     ipcMain.on('add-auteur', async (event, auteurData) => {
         console.log('Tentative d\'enregistrement d\'un auteur:', auteurData);
@@ -19,6 +21,7 @@ function ajoutauteur(ipcMain, pool) {
             if (!pool) throw new Error("La connexion à la base de données n'est pas initialisée.");
     
             const [result] = await pool.execute(sql, values);
+            await enregistrerHistorique(pool, 'Auteur ajouté', `${auteurData.prenom_auteur} ${auteurData.nom_auteur}`);
             
             event.sender.send('add-auteur-response', { 
                 success: true, 

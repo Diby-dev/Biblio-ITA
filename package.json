@@ -6,7 +6,8 @@
   "scripts": {
     "start": "electron .",
     "dist": "npx electron-builder",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "build": "electron-builder"
   },
   "author": "Your Name",
   "license": "ISC",
@@ -43,8 +44,8 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "installerSidebar": "buildimg/sidebar.bmp", 
-      "installerHeaderIcon": "buildimg/header.bmp" 
+      "installerSidebar": "buildimg/sidebar.bmp",
+      "installerHeaderIcon": "buildimg/header.bmp"
     }
   }
 }
