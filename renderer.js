@@ -14,6 +14,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    const btnManuel = document.getElementById('btn-manuel');
+    if (btnManuel) {
+        btnManuel.addEventListener('click', () => {
+            console.log("Demande d'ouverture du manuel administrateur (Tuto_adm.pdf)");
+            ipcRenderer.send('open-manual', 'Tuto_adm.pdf');
+        });
+    }
+
     const slides = document.querySelectorAll('.slideshow-container .slide');
     let currentSlide = 0;
 

@@ -1,9 +1,18 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const path = require('path');
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 const puppeteer = require('puppeteer');
 const fs = require('fs');
+
+// --- AJOUTS POUR LES MISES À JOUR AUTOMATIQUES (electron-updater & log) ---
+const { autoUpdater } = require('electron-updater');
+const log = require('electron-log');
+
+// Configuration des logs pour electron-updater
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
+// -------------------------------------------------------------------------
 
 
 const { ajoutuser } = require('./fonctions/ajoutuser');
@@ -34,8 +43,8 @@ const { historique } = require('./fonctions/historique');
 const dbConfig = {
     host: 'localhost',
     port: 3306,
-    user: 'root', 
-    password: '', 
+    user: 'root',
+    password: '',
     database: 'bibliotheque',
     waitForConnections: true,
     connectionLimit: 10,
@@ -187,12 +196,34 @@ function createAndReplaceWindow(targetFile) {
 app.whenReady().then(async () => {
     await initializeDatabasePool();
     createAndReplaceWindow('login.html');
+
+    // --- VÉRIFICATION DES MISES À JOUR AUTOMATIQUES AU LANCEMENT ---
+    autoUpdater.checkForUpdatesAndNotify();
+    // -------------------------------------------------------------
+
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createAndReplaceWindow('login.html');
         }
     });
 });
+
+// --- ÉVÉNEMENTS DE MISE À JOUR AUTOMATIQUE ---
+autoUpdater.on('update-available', () => {
+    log.info('Une mise à jour est disponible.');
+});
+
+autoUpdater.on('update-downloaded', () => {
+    dialog.showMessageBox({
+        type: 'info',
+        title: 'Mise à jour prête',
+        message: 'Une nouvelle version a été téléchargée. L\'application va redémarrer pour l\'installer.',
+        buttons: ['Redémarrer']
+    }).then(() => {
+        autoUpdater.quitAndInstall();
+    });
+});
+// ---------------------------------------------
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
@@ -215,6 +246,77 @@ ipcMain.on('open-window', (event, targetFile) => {
         return;
     }
     createAndReplaceWindow(targetFile);
+});
+
+async function openDocumentPdf(fileName) {
+    const allowedFiles = new Set(['Tuto_adm.pdf', 'Tuto_user.pdf']);
+    if (!allowedFiles.has(fileName)) {
+        console.warn(`Tentative d'ouverture d'un fichier non autorisé : ${fileName}`);
+        return;
+    }
+
+    const candidates = [
+        path.join(process.resourcesPath, 'docum', fileName),
+        path.join(process.resourcesPath, 'app.asar.unpacked', 'docum', fileName),
+        path.join(__dirname, 'docum', fileName),
+        path.join(app.getAppPath(), 'docum', fileName)
+    ];
+
+    let resolvedPath = null;
+    for (const candidate of candidates) {
+        try {
+            if (fs.existsSync(candidate)) {
+                resolvedPath = candidate;
+                break;
+            }
+        } catch (e) {
+            // Ignorer l'erreur d'accès
+        }
+    }
+
+    if (!resolvedPath) {
+        console.error(`Fichier introuvable dans tous les chemins candidats : ${fileName}`);
+        return;
+    }
+
+    // Si le fichier se trouve à l'intérieur d'une archive .asar, l'extraire pour permettre à l'application externe (lecteur PDF) de l'ouvrir
+    if (resolvedPath.includes('.asar') && !resolvedPath.includes('.asar.unpacked')) {
+        try {
+            const tempDir = path.join(app.getPath('userData'), 'docum');
+            if (!fs.existsSync(tempDir)) {
+                fs.mkdirSync(tempDir, { recursive: true });
+            }
+            const extractedPath = path.join(tempDir, fileName);
+            fs.writeFileSync(extractedPath, fs.readFileSync(resolvedPath));
+            resolvedPath = extractedPath;
+        } catch (err) {
+            console.error(`Erreur lors de l'extraction de ${fileName} depuis asar :`, err);
+            return;
+        }
+    }
+
+    try {
+        const errorMsg = await shell.openPath(resolvedPath);
+        if (errorMsg) {
+            console.error(`Erreur lors de shell.openPath (${resolvedPath}) : ${errorMsg}`);
+        } else {
+            console.log(`Document ouvert avec succès : ${resolvedPath}`);
+        }
+    } catch (err) {
+        console.error(`Exception lors de l'ouverture du document (${resolvedPath}) :`, err);
+    }
+}
+
+ipcMain.on('open-manual', async (event, fileName) => {
+    if (fileName === 'Tuto_adm.pdf' && accessMode !== 'admin') {
+        console.warn("Accès refusé : privilèges administrateur requis pour Tuto_adm.pdf.");
+        return;
+    }
+    if (fileName === 'Tuto_user.pdf' && accessMode !== 'visitor' && accessMode !== 'admin') {
+        console.warn("Accès refusé : session non autorisée pour Tuto_user.pdf.");
+        return;
+    }
+    await openDocumentPdf(fileName);
 });
 
 

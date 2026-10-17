@@ -15,6 +15,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    const btnManuel = document.getElementById('btn-manuel');
+    if (btnManuel) {
+        btnManuel.addEventListener('click', () => {
+            console.log("Demande d'ouverture du manuel visiteur (Tuto_user.pdf)");
+            ipcRenderer.send('open-manual', 'Tuto_user.pdf');
+        });
+    }
+
     const slides = document.querySelectorAll('.slideshow-container .slide');
     let currentSlide = 0;
 

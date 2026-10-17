@@ -2,7 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 const channelsByPage = {
     'login.html': ['admin-authenticate', 'auth-response', 'guest-access'],
-    'index.html': ['open-window'],
+    'index.html': ['open-window', 'open-manual'],
     'dash.html': ['open-window', 'get-dashboard-stats', 'get-dashboard-stats-response', 'get-admins', 'get-admins-response', 'add-admin', 'add-admin-response', 'toggle-admin-status', 'toggle-admin-status-response', 'get-history', 'get-history-response', 'clear-history', 'clear-history-response'],
     'utilisateur.html': ['open-window', 'add-user', 'add-user-response'],
     'voir_utilisateur.html': ['open-window', 'get-users', 'get-users-response', 'update-user', 'update-user-response'],
@@ -14,7 +14,7 @@ const channelsByPage = {
     'voir_fournisseur.html': ['open-window', 'get-fournisseurs', 'get-fournisseurs-response', 'update-fournisseur', 'update-fournisseur-response'],
     'emprunt.html': ['open-window', 'get-emprunt-add-dependencies', 'get-emprunt-add-dependencies-response', 'add-emprunt', 'add-emprunt-response'],
     'voir_emprunt.html': ['open-window', 'get-emprunts', 'get-emprunts-response', 'get-emprunt-dependencies', 'get-emprunt-dependencies-response', 'update-emprunt', 'update-emprunt-response', 'generate-emprunt-pdf-single', 'generate-emprunt-pdf-response', 'open-file-in-shell'],
-    'indexvis.html': ['open-window'],
+    'indexvis.html': ['open-window', 'open-manual'],
     'voir_livrevis.html': ['open-window', 'get-livres', 'get-livres-response'],
     'voir_auteurvis.html': ['open-window', 'get-auteurs', 'get-auteurs-response']
 };
